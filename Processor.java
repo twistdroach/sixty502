@@ -2,12 +2,12 @@
  * Processor.java
  * Emulates the NES' main processor
  *
- * @author Christopher Erickson
+ * @author Christopher Erickson and Christopher Pable
  */
 import java.util.regex.*;
 
 public class Processor {
-    /* Registers */         //                   0 1 2 3 4 5 6 7
+    /* Registers */          //                   0 1 2 3 4 5 6 7
     private Register P;     // Status register - N|V|1|B|D|I|Z|C
     private Register A;     // Accumulator
     private Register X;     // Index register
@@ -30,12 +30,13 @@ public class Processor {
     public static void main(String[] args) {
         // Create a processor!
         Processor NES = new Processor();
+        //System.out.println("" + (Integer.toBinaryString(-128)) );
         NES.start();
     }
     
     // Starts the processor
     private void start() {
-        // Initialize registers
+        // Initialize registersa
         // Obviously, most of these values are meaningless
         P.setVal("%00000000");
         A.setVal("%10100111");
@@ -84,13 +85,472 @@ public class Processor {
         ADC( A, A, new Byte( matched.group(2) ) );
     }
     
+    // OPCODE HELPERS
+    
+     // determine if we overflow, 255 in positive, 255 in negative (we use a flag, not twos compliment? WIll need to look into this, maybe byte should store -/+ metadata?)
+    private int checkOverflow(int temp)
+    {
+      if (temp < 255 || temp > 255)
+      {
+        temp%=255; 
+        P.setBit(1,true);//set V
+      }
+      return temp;
+    }
+    
+    // determine if negative, if so, set negative flag, make val positive
+    private int checkNegative(int temp)
+    {
+    if (temp < 0)
+        {
+          temp = -temp;
+          P.setBit(0, true);
+        }
+        return temp;
+     }
+     private void checkZero(int temp)
+     {
+        if (temp == 0) P.setBit(0, true);
+     }
+    
     /* OPCODE IMPLEMENTATION */
     // Your end :) //
     
     // Add with carry - Opcode
-    private void ADC( Byte dest, Byte src1, Byte src2 ) {
-        // Obviously needs to be updated with carry, but
-        // this is just an example.
-        dest.setVal( src1.getVal() + src2.getVal() );
+    private void ADC( Byte dest, Byte src1, Byte src2 ) 
+    {
+        int temp = src1.getVal() + src2.getVal();
+        if (P.getBit(7)) temp++; // add the carry if present
+        P.setBit(7,false); // remove carry if present
+        temp = checkOverflow(temp);
+        temp = checkNegative(temp);
+        checkZero(temp);
+        dest.setVal(temp);
     }
+    
+    //AND - Opcode
+    private void AND( Byte dest, Byte src1, Byte src2 ) 
+    {
+      Byte temp;
+      String t1, t2, t3;
+      t1= src1.getValBin();//get strings from the vals
+      t2= src1.getValBin();
+      t3 = "%";
+      for (int i=1; i<t1.length(); i++) //perform a string comp AND
+      {
+        if (t1.charAt(i) == t2.charAt(i)) t3 += t2.charAt(i); // 1 or 0
+        else t3 +="0";// if they dont match, throw out a zero
+      }
+      temp = new Byte(t3); // save ANDed val
+      checkZero(temp.getVal());//set Z flag
+      temp.setVal(checkNegative(temp.getVal())); //set N flag
+      dest.setVal(temp.getVal()); // return result
+    }
+    
+    //Arithmatic Shift Left - Opcode
+    private void ASL( Byte dest, Byte src1, Byte src2 ) 
+    {
+      //is src2 the number of times to shift?
+      String temp = src1.getValBin().substring(1,src1.getValBin().length());
+      for (int i =0; i < src2.getVal(); i++)
+      {
+        if (temp.charAt(0) == '1') P.setBit(7,true);//shift into carry
+        else P.setBit(7,false);
+        temp = temp.substring(1,temp.length()) + "0";//shift into string
+      }
+      temp = "%" + temp; // replace % for bin string
+      dest.setVal(temp);
+      checkZero(dest.getVal());
+      checkNegative(dest.getVal());
+    }
+    
+    //BCC, BCS, BEQ, BIT, BMI, BNE, BPL, BVC, BVS handled by parser
+    
+    //Break - Opcode
+    private void BRK(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just setting up the interrupt.
+      P.setBit(3,true);
+      P.setBit(5,true);
+    }
+    
+    //Clear Carry Flag - Opcode
+    private void CLC(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just clearing C
+      P.setBit(7,false);
+    }
+    
+    //Clear Decimal Mode - Opcode
+    private void CLD(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just clearing D
+      P.setBit(4,false);
+    }
+    
+    //Clear Interrupt Disable - Opcode
+    private void CLI(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just clearing I
+      P.setBit(5,false);
+    }
+    
+    //Clear Overflow Flag - Opcode
+    private void CLV(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just clearing V
+      P.setBit(1,false);
+    }
+    
+    //Compare Memory and Accumulator - Opcode
+    private void CMP(Byte dest, Byte src1, Byte src2)
+    {
+    // Dest is useless for us, we dont need to set anything there, all we do is set flags
+      if (src1.getVal() < src2.getVal())
+      {
+        P.setBit(0,true);
+        P.setBit(6,false);
+        P.setBit(7,false);
+        return;
+      }
+      if (src1.getVal() > src2.getVal())
+      {
+        P.setBit(0,false);
+        P.setBit(6,false);
+        P.setBit(7,true);
+        return;
+      }
+      P.setBit(0,false);
+      P.setBit(6,true);
+      P.setBit(7,true);
+    
+    }
+
+    //Compare Memory and X - Opcode
+    private void CPX(Byte dest, Byte src1, Byte src2)
+    {
+    // Dest is useless for us, we dont need to set anything there, all we do is set flags
+      if (src1.getVal() < src2.getVal())
+      {
+        P.setBit(0,true);
+        P.setBit(6,false);
+        P.setBit(7,false);
+        return;
+      }
+      if (src1.getVal() > src2.getVal())
+      {
+        P.setBit(0,false);
+        P.setBit(6,false);
+        P.setBit(7,true);
+        return;
+      }
+      P.setBit(0,false);
+      P.setBit(6,true);
+      P.setBit(7,true);
+    
+    }
+
+    //Compare Memory and Y - Opcode
+    private void CPY(Byte dest, Byte src1, Byte src2)
+    {
+    // Dest is useless for us, we dont need to set anything there, all we do is set flags
+      if (src1.getVal() < src2.getVal())
+      {
+        P.setBit(0,true);
+        P.setBit(6,false);
+        P.setBit(7,false);
+        return;
+      }
+      if (src1.getVal() > src2.getVal())
+      {
+        P.setBit(0,false);
+        P.setBit(6,false);
+        P.setBit(7,true);
+        return;
+      }
+      P.setBit(0,false);
+      P.setBit(6,true);
+      P.setBit(7,true);
+      }
+      
+    //Decrement X by 1 - Opcode
+    private void DEX(Byte dest, Byte src1, Byte src2)
+    {
+      //src1, src2, and dest should all be the same here
+      dest.setVal((dest.getVal()-1)); // do the decrement
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+    
+    //Decrement Memory by 1 - Opcode
+    private void DEC(Byte dest, Byte src1, Byte src2)
+    {
+      //src1, src2, and dest should all be the same here
+      dest.setVal((dest.getVal()-1)); // do the decrement
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+    
+    //Decrement Y by 1 - Opcode
+    private void DEY(Byte dest, Byte src1, Byte src2)
+    {
+      //src1, src2, and dest should all be the same here
+      dest.setVal((dest.getVal()-1)); // do the decrement
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+
+    //Exclusive OR Memory and A - Opcode
+    private void EOR(Byte dest, Byte src1, Byte src2)
+    {
+      String t1, t2, t3;
+      t1= (src1.getValBin()).substring(1,src1.getValBin().length());
+      t2= (src2.getValBin()).substring(1,src2.getValBin().length());
+      t3="%";
+      for (int i=0; i< t1.length(); i++) //string based XOR
+      {
+        if (t1.charAt(i) != t2.charAt(i)) // one is a 1, the other is a zero
+          t3+="1";
+        else t3 += "0";
+      }
+      dest.setVal(t3);
+      checkNegative(dest.getVal());
+      checkZero(dest.getVal());
+    }
+
+    //Increment Memory by 1 - Opcode
+    private void INC(Byte dest, Byte src1, Byte src2)
+    {
+      //src1, src2, and dest should all be the same here
+      dest.setVal((dest.getVal()+1)); // do the decrement
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+    
+    //Increment X by 1 - Opcode
+    private void INX(Byte dest, Byte src1, Byte src2)
+    {
+      //src1, src2, and dest should all be the same here
+      dest.setVal((dest.getVal()+1)); // do the decrement
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+    
+    //Increment Y by 1 - Opcode
+    private void INY(Byte dest, Byte src1, Byte src2)
+    {
+      //src1, src2, and dest should all be the same here
+      dest.setVal((dest.getVal()+1)); // do the decrement
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+
+    //JMP and JSR handled by parser
+    
+    //Load Accumulator with Memory - Opcode
+    private void LDA(Byte dest, Byte src1, Byte src2)
+    {
+      //Assuming memory byte is src1, dest and src2 can be A
+      dest.setVal(src1.getVal());
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+
+    //Load X with Memory - Opcode
+    private void LDX(Byte dest, Byte src1, Byte src2)
+    {
+      //Assuming memory byte is src1, dest and src2 can be X
+      dest.setVal(src1.getVal());
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+
+    //Load Y with Memory - Opcode
+    private void LDY(Byte dest, Byte src1, Byte src2)
+    {
+      //Assuming memory byte is src1, dest and src2 can be Y
+      dest.setVal(src1.getVal());
+      checkNegative(dest.getVal()); //set flags
+      checkZero(dest.getVal());
+    }
+
+    //Logical Shift Right - Opcode
+    private void LSR( Byte dest, Byte src1, Byte src2 ) 
+    {
+      //is src2 the number of times to shift?
+      String temp = src1.getValBin().substring(1,src1.getValBin().length());
+      for (int i =0; i < src2.getVal(); i++)
+      {
+        if (temp.charAt(temp.length()-1) == '1') P.setBit(7,true);//shift into carry
+        else P.setBit(7,false);
+        temp = "0" + temp.substring(1,temp.length());//shift into string
+      }
+      temp = "%" + temp; // replace % for bin string
+      dest.setVal(temp);
+      checkZero(dest.getVal());
+      checkNegative(dest.getVal());
+    }
+
+    //NOP - Opcode
+    private void NOP( Byte dest, Byte src1, Byte src2 ) 
+    {
+      //No opcode! Do nothing :)
+    }
+    
+    //Or Memory with Accumulator - Opcode
+    private void ORA( Byte dest, Byte src1, Byte src2 ) 
+    {
+      Byte temp;
+      String t1, t2, t3;
+      t1= src1.getValBin();//get strings from the vals
+      t2= src1.getValBin();
+      t3 = "%";
+      for (int i=1; i<t1.length(); i++) //perform a string comp OR
+      {
+        if (t1.charAt(i) != t2.charAt(i)) t3 += "1"; // One has to be 1, the other has to be zero
+        else if (t1.charAt(i) == '0' &&  t2.charAt(i) == '0')
+          t3 +="0";// if they have zeros, throw out a zero
+        else
+          t3 +="1";// if neither of the above is true, they are both 1s
+      }
+      temp = new Byte(t3); // save ORed val
+      checkZero(temp.getVal());//set Z flag
+      temp.setVal(checkNegative(temp.getVal())); //set N flag
+      dest.setVal(temp.getVal()); // return result
+    }
+    
+    
+    //TODO: Implement Stack to use stack operations
+    
+    
+    
+    //Rotate Left - Opcode
+    private void ROL( Byte dest, Byte src1, Byte src2 ) 
+    {
+      //is src2 the number of times to shift?
+      String temp = src1.getValBin().substring(1,src1.getValBin().length());
+      for (int i =0; i < src2.getVal(); i++)
+      {
+        if (temp.charAt(0) == '1') P.setBit(7,true);//shift into carry
+        else P.setBit(7,false);
+        temp = temp.substring(1,temp.length()) + temp.charAt(0);//shift into string
+      }
+      temp = "%" + temp; // replace % for bin string
+      dest.setVal(temp);
+      checkZero(dest.getVal());
+      checkNegative(dest.getVal());
+    }
+    
+    //Rotate Right - Opcode
+    private void ROR( Byte dest, Byte src1, Byte src2 ) 
+    {
+      //is src2 the number of times to shift?
+      String temp = src1.getValBin().substring(1,src1.getValBin().length());
+      for (int i =0; i < src2.getVal(); i++)
+      {
+        if (temp.charAt(temp.length()-1) == '1') P.setBit(7,true);//shift into carry
+        else P.setBit(7,false);
+        temp = P.getValBin().charAt(8) + temp.substring(1,temp.length());//shift into string
+      }
+      temp = "%" + temp; // replace % for bin string
+      dest.setVal(temp);
+      checkZero(dest.getVal());
+      checkNegative(dest.getVal());
+    }
+    
+    //RTI and RTS Require the Stack
+    
+    //Subtract from Accumulator with Carry - Opcode
+    private void SBC(Byte dest, Byte src1, Byte src2)
+    {
+      //Assume src1 is A, src2 is B, dest is A
+      int temp;
+      //A - M - NOT(C)
+      temp = src1.getVal();
+      temp -= src2.getVal();
+      if (!P.getBit(7)) temp--;
+      temp = checkOverflow(temp);
+      temp = checkNegative(temp);
+      checkZero(temp);
+      dest.setVal(temp);
+    }
+    
+    //Set Carry Flag - Opcode
+    private void SEC(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just setting C
+      P.setBit(7,true);
+    }
+    
+    //Set Decimal Mode - Opcode
+    private void SED(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just setting D
+      P.setBit(4,true);
+    }
+
+    //Set Interrupt Bit - Opcode
+    private void SEI(Byte dest, Byte src1, Byte Src2)
+    {
+      //All parameter data is useless, so we ignore, just setting I
+      P.setBit(5,true);
+    }
+    
+    //Store Accumulator in memory - Opcode
+    private void STA(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume A is src1 and src2, memory byte is in dest
+      dest.setVal(src1.getVal());
+    }    
+    
+    //Store X in memory - Opcode
+    private void STX(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume X is src1 and src2, memory byte is in dest
+      dest.setVal(src1.getVal());
+    }    
+    
+    //Store Accumulator in memory - Opcode
+    private void STY(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume Y is src1 and src2, memory byte is in dest
+      dest.setVal(src1.getVal());
+    }    
+    
+    //Transfer Accumulator to X - Opcode
+    private void TAX(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume A is src1 and src2, X byte is in dest
+      dest.setVal(checkNegative(src1.getVal()));
+      checkZero(dest.getVal());
+    }
+    
+    //Transfer Accumulator to Y - Opcode
+    private void TAY(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume A is src1 and src2, Y byte is in dest
+      dest.setVal(checkNegative(src1.getVal()));
+      checkZero(dest.getVal());
+    }
+    
+    //TSX Requires Stack
+    
+    //Transfer X to Accumulator - Opcode
+    private void TXA(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume X is src1 and src2, A byte is in dest
+      dest.setVal(checkNegative(src1.getVal()));
+      checkZero(dest.getVal());
+    }
+    
+    //TXS requires stack
+    
+    //Transfer Y to Accumulator - Opcode
+    private void TYA(Byte dest, Byte src1, Byte Src2)
+    {
+      //Assume X is src1 and src2, A byte is in dest
+      dest.setVal(checkNegative(src1.getVal()));
+      checkZero(dest.getVal());
+    }
+    
 }
