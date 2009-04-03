@@ -4,7 +4,6 @@
  *
  * @author Christopher Erickson and Christopher Pable
  */
-import java.util.regex.*;
 
 public class Processor {
     /* Registers */         //                   0 1 2 3 4 5 6 7
@@ -14,6 +13,8 @@ public class Processor {
     private Register Y;     // Index register
     private Register SP;    // Stack pointer ( Usage of page $01 implied )
     private PC PC;          // Program counter
+    /* Program */
+    private Program theProgram;
 
     // Default Constructor
     public Processor() {
@@ -45,10 +46,11 @@ public class Processor {
         SP.setVal("$ff");
         PC.setVal("%0000000000000000");
         
-        // Parse & execute!
-        // Not yet implemented
-        executeInstructionAt( PC );
-        
+        // Read in our program
+        theProgram = new Program( "test.asm" );
+
+        // Print it out
+        System.out.println( theProgram );
     }
     
     // Prints out the value of each register, used for testing
@@ -61,28 +63,15 @@ public class Processor {
         System.out.println("PC:\t" + PC.getValHex());
     }
     
-    /*
-     * Here's the important stuff.
-     * 
-     * Of course the stuff below (the parsing) is merely an example of what
-     * I'll be doing. You'll handle things like the ADC method. Notice that
-     * you will ALWAYS receive three bytes. If I parse a memory address, I will
-     * use that Word to get the byte in memory it refers to, and then send you
-     * that, so you will never receive a Word. Only Bytes.
-     *
-     */
-    
-    // THE FOLLOWING IS MERELY AN EXAMPLE
-    
     // Parsing stuff that I would do
     private String inst = "   adc #$45 ";    
-    public void executeInstructionAt( Word prgAddr ) {
+    public void execInst( Word prgAddr ) {
         // Setup instruction regex                 Instruction         Immediate           Comment
-        Pattern instruction = Pattern.compile( "^\\s*(\\w{3})\\s+#(\\$[0-9abcdef]{1,2})\\s*(;\\w*)?.*$" );
+        //Pattern instruction = Pattern.compile( "^\\s*(\\w{3})\\s+#(\\$[0-9abcdef]{1,2})\\s*(;\\w*)?.*$" );
         // Grabbed matched items
-        Matcher matched = instruction.matcher( inst );
+        //Matcher matched = instruction.matcher( inst );
         // Call the opcode!
-        ADC( A, A, new Byte( matched.group(2) ) );
+        //ADC( A, A, new Byte( matched.group(2) ) );
     }
     
     // OPCODE HELPERS
