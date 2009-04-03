@@ -7,7 +7,7 @@
 import java.util.regex.*;
 
 public class Processor {
-    /* Registers */          //                   0 1 2 3 4 5 6 7
+    /* Registers */         //                   0 1 2 3 4 5 6 7
     private Register P;     // Status register - N|V|1|B|D|I|Z|C
     private Register A;     // Accumulator
     private Register X;     // Index register
@@ -36,7 +36,7 @@ public class Processor {
     
     // Starts the processor
     private void start() {
-        // Initialize registersa
+        // Initialize registers
         // Obviously, most of these values are meaningless
         P.setVal("%00000000");
         A.setVal("%10100111");
@@ -114,9 +114,27 @@ public class Processor {
      }
     
     /* OPCODE IMPLEMENTATION */
-    // Your end :) //
     
-    // Add with carry - Opcode
+    /**
+     * Add with Carry
+     * Adds two bytes together.
+     *
+     * Used Flags:
+     *   O - Set if result is outside the range of a signed byte.
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *   C - If set, adds one to the resulting sum.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   both src1 and dest will be fixed as the accumulator.
+     *   This is done in the parser class to allow for generalized
+     *   opcode methods.
+     *
+     * @param src1 Byte to be added.
+     * @param src2 Byte to be added.
+     * @param dest Byte to store sum.
+     */
     private void ADC( Byte dest, Byte src1, Byte src2 ) 
     {
         int temp = src1.getVal() + src2.getVal();
@@ -128,7 +146,22 @@ public class Processor {
         dest.setVal(temp);
     }
     
-    //AND - Opcode
+    /**
+     * Bitwise AND
+     * ANDs two bytes together, bitwise.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   both src1 and dest will be fixed as the accumulator.
+     *
+     * @param src1 Byte to be ANDed.
+     * @param src2 Byte to be ANDed.
+     * @param dest Byte to store result.
+     */
     private void AND( Byte dest, Byte src1, Byte src2 ) 
     {
       Byte temp;
@@ -147,17 +180,32 @@ public class Processor {
       dest.setVal(temp.getVal()); // return result
     }
     
-    //Arithmatic Shift Left - Opcode
-    private void ASL( Byte dest, Byte src1, Byte src2 ) 
+    /**
+     * Arithmetic Shift Left
+     * Shifts all bits left one position. 0 is shifted in.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *   C - Set if bit shifted off the left end is set. (bit 7)
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   dest will be fixed as the accumulator.
+     *
+     * @param src1 Byte to be shifted left.
+     * @param dest Byte to store result.
+     */
+    private void ASL( Byte dest, Byte src1 ) 
     {
-      //is src2 the number of times to shift?
+      //is src2 the number of times to shift? - No. Shifts exactly once.
       String temp = src1.getValBin().substring(1,src1.getValBin().length());
-      for (int i =0; i < src2.getVal(); i++)
-      {
+      //for (int i =0; i < src2.getVal(); i++)
+      //{
         if (temp.charAt(0) == '1') P.setBit(7,true);//shift into carry
         else P.setBit(7,false);
         temp = temp.substring(1,temp.length()) + "0";//shift into string
-      }
+      //}
       temp = "%" + temp; // replace % for bin string
       dest.setVal(temp);
       checkZero(dest.getVal());
@@ -166,43 +214,90 @@ public class Processor {
     
     //BCC, BCS, BEQ, BIT, BMI, BNE, BPL, BVC, BVS handled by parser
     
-    //Break - Opcode
-    private void BRK(Byte dest, Byte src1, Byte Src2)
+    /**
+     * Break
+     * Causes an interrupt.
+     *
+     * Used Flags:
+     *   B - Set to specify a break.
+     *   I - Set to signal an interrupt.
+     */
+    private void BRK()
     {
       //All parameter data is useless, so we ignore, just setting up the interrupt.
       P.setBit(3,true);
       P.setBit(5,true);
     }
     
-    //Clear Carry Flag - Opcode
-    private void CLC(Byte dest, Byte src1, Byte Src2)
+    /**
+     * Clear Flag - Carry
+     * Sets the carry flag to zero.
+     *
+     * Used Flags:
+     *   C - Set to zero.
+     */
+    private void CLC()
     {
       //All parameter data is useless, so we ignore, just clearing C
       P.setBit(7,false);
     }
     
-    //Clear Decimal Mode - Opcode
-    private void CLD(Byte dest, Byte src1, Byte Src2)
+    /**
+     * Clear Flag - Decimal Mode
+     * Sets the decimal mode flag to zero.
+     *
+     * Used Flags:
+     *   D - Set to zero.
+     */
+    private void CLD()
     {
       //All parameter data is useless, so we ignore, just clearing D
       P.setBit(4,false);
     }
     
-    //Clear Interrupt Disable - Opcode
-    private void CLI(Byte dest, Byte src1, Byte Src2)
+    /**
+     * Clear Flag - Interrupt Disable
+     * Sets the interrupt disable flag to zero.
+     *
+     * Used Flags:
+     *   I - Set to zero.
+     */
+    private void CLI()
     {
       //All parameter data is useless, so we ignore, just clearing I
       P.setBit(5,false);
     }
     
-    //Clear Overflow Flag - Opcode
-    private void CLV(Byte dest, Byte src1, Byte Src2)
+    /**
+     * Clear Flag - Overflow
+     * Sets the overflow flag to zero.
+     *
+     * Used Flags:
+     *   V - Set to zero.
+     */
+    private void CLV()
     {
       //All parameter data is useless, so we ignore, just clearing V
       P.setBit(1,false);
     }
     
-    //Compare Memory and Accumulator - Opcode
+    /**
+     * Compare Accumulator
+     * Compares the accumulator to a given byte.
+     *
+     * Used Flags:
+     *   N - Set if accumulator is less than the byte.
+     *   Z - Set if accumulator and byte are equal.
+     *   C - Set if accumulator is greater than or equal to the byte.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   both src1 and dest will be fixed as the accumulator.
+     *
+     * @param src1 First comparison byte.
+     * @param src2 Second comparison byte.
+     * @param dest Byte to store result.
+     */
     private void CMP(Byte dest, Byte src1, Byte src2)
     {
     // Dest is useless for us, we dont need to set anything there, all we do is set flags
@@ -226,7 +321,24 @@ public class Processor {
     
     }
 
-    //Compare Memory and X - Opcode
+    /**
+     * Compare Index Register X
+     * Compares register X to a given byte.
+     *
+     * Used Flags:
+     *   N - Set if register X is less than the byte.
+     *   Z - Set if register X and byte are equal.
+     *   C - Set if register X is greater than or equal to the byte.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   src1 will be fixed as register X and dest will be
+     *   fixed as the accumulator.
+     *
+     * @param src1 First comparison byte.
+     * @param src2 Second comparison byte.
+     * @param dest Byte to store result.
+     */
     private void CPX(Byte dest, Byte src1, Byte src2)
     {
     // Dest is useless for us, we dont need to set anything there, all we do is set flags
@@ -250,7 +362,24 @@ public class Processor {
     
     }
 
-    //Compare Memory and Y - Opcode
+    /**
+     * Compare Index Register Y
+     * Compares register Y to a given byte.
+     *
+     * Used Flags:
+     *   N - Set if register Y is less than the byte.
+     *   Z - Set if register Y and byte are equal.
+     *   C - Set if register Y is greater than or equal to the byte.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   src1 will be fixed as register Y and dest will be
+     *   fixed as the accumulator.
+     *
+     * @param src1 First comparison byte.
+     * @param src2 Second comparison byte.
+     * @param dest Byte to store result.
+     */
     private void CPY(Byte dest, Byte src1, Byte src2)
     {
     // Dest is useless for us, we dont need to set anything there, all we do is set flags
@@ -273,8 +402,17 @@ public class Processor {
       P.setBit(7,true);
       }
       
-    //Decrement X by 1 - Opcode
-    private void DEX(Byte dest, Byte src1, Byte src2)
+    /**
+     * Decrement X
+     * Decreases the value stored in register X by one.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * @param dest Byte to decrement.
+     */
+    private void DEX(Byte dest)
     {
       //src1, src2, and dest should all be the same here
       dest.setVal((dest.getVal()-1)); // do the decrement
@@ -282,7 +420,16 @@ public class Processor {
       checkZero(dest.getVal());
     }
     
-    //Decrement Memory by 1 - Opcode
+    /**
+     * Decrement Memory
+     * Decreases the value stored in memory by one.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * @param dest Byte to decrement.
+     */
     private void DEC(Byte dest, Byte src1, Byte src2)
     {
       //src1, src2, and dest should all be the same here
@@ -291,7 +438,16 @@ public class Processor {
       checkZero(dest.getVal());
     }
     
-    //Decrement Y by 1 - Opcode
+    /**
+     * Decrement Y
+     * Decreases the value stored in register Y by one.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * @param dest Byte to decrement.
+     */
     private void DEY(Byte dest, Byte src1, Byte src2)
     {
       //src1, src2, and dest should all be the same here
@@ -300,7 +456,22 @@ public class Processor {
       checkZero(dest.getVal());
     }
 
-    //Exclusive OR Memory and A - Opcode
+    /**
+     * Bitwise Exclusive OR
+     * ORs two bytes together, bitwise.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   both src1 and dest will be fixed as the accumulator.
+     *
+     * @param src1 First byte to be XORd.
+     * @param src2 Second byte to be XORd.
+     * @param dest Byte to store result.
+     */
     private void EOR(Byte dest, Byte src1, Byte src2)
     {
       String t1, t2, t3;
@@ -318,8 +489,17 @@ public class Processor {
       checkZero(dest.getVal());
     }
 
-    //Increment Memory by 1 - Opcode
-    private void INC(Byte dest, Byte src1, Byte src2)
+    /**
+     * Increment Memory
+     * Increases the value stored in the memory by one.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * @param dest Byte to increment.
+     */
+    private void INC(Byte dest)
     {
       //src1, src2, and dest should all be the same here
       dest.setVal((dest.getVal()+1)); // do the decrement
@@ -327,7 +507,16 @@ public class Processor {
       checkZero(dest.getVal());
     }
     
-    //Increment X by 1 - Opcode
+    /**
+     * Increment X
+     * Increases the value stored in register X by one.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * @param dest Byte to decrement.
+     */
     private void INX(Byte dest, Byte src1, Byte src2)
     {
       //src1, src2, and dest should all be the same here
@@ -336,7 +525,16 @@ public class Processor {
       checkZero(dest.getVal());
     }
     
-    //Increment Y by 1 - Opcode
+    /**
+     * Increment Y
+     * Increases the value stored in register Y by one.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * @param dest Byte to decrement.
+     */
     private void INY(Byte dest, Byte src1, Byte src2)
     {
       //src1, src2, and dest should all be the same here
@@ -347,8 +545,22 @@ public class Processor {
 
     //JMP and JSR handled by parser
     
-    //Load Accumulator with Memory - Opcode
-    private void LDA(Byte dest, Byte src1, Byte src2)
+    /**
+     * Load Accumulator
+     * Loads a value from memory into the accumulator.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   dest will be fixed as the accumulator.
+     *
+     * @param src1 Byte to be loaded from.
+     * @param dest Byte to be stored into.
+     */
+    private void LDA(Byte dest, Byte src1)
     {
       //Assuming memory byte is src1, dest and src2 can be A
       dest.setVal(src1.getVal());
@@ -356,7 +568,21 @@ public class Processor {
       checkZero(dest.getVal());
     }
 
-    //Load X with Memory - Opcode
+    /**
+     * Load Register X
+     * Loads a value from memory into register X.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   dest will be fixed as register X.
+     *
+     * @param src1 Byte to be loaded from.
+     * @param dest Byte to be stored into.
+     */
     private void LDX(Byte dest, Byte src1, Byte src2)
     {
       //Assuming memory byte is src1, dest and src2 can be X
@@ -365,7 +591,21 @@ public class Processor {
       checkZero(dest.getVal());
     }
 
-    //Load Y with Memory - Opcode
+    /**
+     * Load Register Y
+     * Loads a value from memory into register Y.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   dest will be fixed as register Y.
+     *
+     * @param src1 Byte to be loaded from.
+     * @param dest Byte to be stored into.
+     */
     private void LDY(Byte dest, Byte src1, Byte src2)
     {
       //Assuming memory byte is src1, dest and src2 can be Y
@@ -374,24 +614,42 @@ public class Processor {
       checkZero(dest.getVal());
     }
 
-    //Logical Shift Right - Opcode
-    private void LSR( Byte dest, Byte src1, Byte src2 ) 
+    /**
+     * Logical Shift Right
+     * Shifts all bits right one position. 0 is shifted in.
+     *
+     * Used Flags:
+     *   N - Set if result is negative.
+     *   Z - Set if result is zero.
+     *   C - Set if bit shifted off the right end is set. (bit 0)
+     *
+     * Implied Parameters:
+     *   In order to function just as the original opcode,
+     *   dest will be fixed as the accumulator.
+     *
+     * @param src1 Byte to be shifted right.
+     * @param dest Byte to store result.
+     */
+    private void LSR( Byte dest, Byte src1 ) 
     {
-      //is src2 the number of times to shift?
+      //is src2 the number of times to shift? - Again, no. One shift.
       String temp = src1.getValBin().substring(1,src1.getValBin().length());
-      for (int i =0; i < src2.getVal(); i++)
-      {
+      //for (int i =0; i < src2.getVal(); i++)
+      //{
         if (temp.charAt(temp.length()-1) == '1') P.setBit(7,true);//shift into carry
         else P.setBit(7,false);
         temp = "0" + temp.substring(1,temp.length());//shift into string
-      }
+      //}
       temp = "%" + temp; // replace % for bin string
       dest.setVal(temp);
       checkZero(dest.getVal());
       checkNegative(dest.getVal());
     }
 
-    //NOP - Opcode
+    /**
+     * NOP
+     * Does nothing.
+     */
     private void NOP( Byte dest, Byte src1, Byte src2 ) 
     {
       //No opcode! Do nothing :)
