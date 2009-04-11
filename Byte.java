@@ -4,10 +4,11 @@
  *
  * @author Christopher Erickson
  */
+
 public class Byte {
     
-    // This is the value stored
-    private int value;
+    // This class stores a signed byte.
+    private byte value;
     
     /**
      * Creates a default Byte ( value = 0 )
@@ -32,8 +33,12 @@ public class Byte {
      * Otherwise, the string gets parsed and stored in value.
      * 
      * @param newVal New value to store in the Byte.
+     * @return A Byte with bits corresponding to these flags:
+     *  0 - Value is negative.
+     *  1 - Value caused overflow.
+     *  6 - Value is zero.
      */
-    public void setVal( String newVal ) {
+    public Byte setVal( String newVal ) {
         int val = 0;
         
         // If string begins with a %, it is binary
@@ -52,16 +57,42 @@ public class Byte {
             val = Integer.parseInt( newVal );
         }
         
-        setVal( val );
+        return setVal( val );
     }
     
     /**
      * Sets the value in the Byte to the decimal value newVal.
      * 
      * @param newVal New value to store in the Byte.
+     * @return A Byte with bits corresponding to these flags:
+     *  0 - Value is negative.
+     *  1 - Value caused overflow.
+     *  6 - Value is zero.
      */
-    public void setVal( int newVal ) {
-        value = newVal & 0xff; // Byte can represent up to $ff
+    public Byte setVal( int newVal ) {
+    	Byte flags = new Byte();
+    	
+    	// Check for negative
+    	if ( newVal < 0 ) {
+    		// Set the negative flag
+    		flags.setBit( Processor.P_N, true );
+    	}
+
+    	// Check for overflow
+    	if ( newVal > 127 || newVal < -128 ) {
+    		// Set the overflow flag
+    		flags.setBit( Processor.P_V, true );
+    	}
+    	
+    	// Check for zero
+    	if ( newVal == 0 ) {
+    		// Set the zero flag
+    		flags.setBit( Processor.P_Z, true );
+    	}
+    	
+    	 // This assumes java handles overflow correctly
+    	value = (byte) newVal;
+        return flags;
     }
     
     /**
@@ -145,7 +176,8 @@ public class Byte {
             value |= bitVal;
         } else {
             // To remove a bit, XOR ( 2 ^ position ) with value
-            value ^= bitVal;
+        	if ( getBit( position ) == true )
+        		value ^= bitVal;
         }
     }
     

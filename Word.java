@@ -1,8 +1,10 @@
 /**
  * Word.java
+ * Defines the Word datatype.
  *
  * @author Christopher Erickson
  */
+
 public class Word {
 
     // The two bytes that this Word is composed of

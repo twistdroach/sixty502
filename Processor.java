@@ -6,6 +6,15 @@
  */
 
 public class Processor {
+	/* Status bit positions */
+	public static final int P_N = 0;
+	public static final int P_V = 1;
+	public static final int P_1 = 2;
+	public static final int P_B = 3;
+	public static final int P_D = 4;
+	public static final int P_I = 5;
+	public static final int P_Z = 6;
+	public static final int P_C = 7;
     /* Registers */         //                   0 1 2 3 4 5 6 7
     private Register P;     // Status register - N|V|1|B|D|I|Z|C
     private Register A;     // Accumulator
@@ -62,51 +71,17 @@ public class Processor {
         System.out.println("S:\t" + SP.getValHex());
         System.out.println("PC:\t" + PC.getValHex());
     }
-    
-    // Parsing stuff that I would do
-    private String inst = "   adc #$45 ";    
-    public void execInst( Word prgAddr ) {
-        // Setup instruction regex                 Instruction         Immediate           Comment
-        //Pattern instruction = Pattern.compile( "^\\s*(\\w{3})\\s+#(\\$[0-9abcdef]{1,2})\\s*(;\\w*)?.*$" );
-        // Grabbed matched items
-        //Matcher matched = instruction.matcher( inst );
-        // Call the opcode!
-        //ADC( A, A, new Byte( matched.group(2) ) );
-    }
-    
+     
     // OPCODE HELPERS
     
-     // determine if we overflow, 255 in positive, 255 in negative (we use a flag, not twos compliment? WIll need to look into this, maybe byte should store -/+ metadata?)
-    private int checkOverflow(int temp)
-    {
-      if (temp < 255 || temp > 255)
-      {
-        temp%=255; 
-        P.setBit(1,true);//set V
-      }
-      return temp;
-    }
-    
-    // determine if negative, if so, set negative flag, make val positive
-    private int checkNegative(int temp)
-    {
-    if (temp < 0)
-        {
-          temp = -temp;
-          P.setBit(0, true);
-        }
-        return temp;
-     }
-     private void checkZero(int temp)
-     {
-        if (temp == 0) P.setBit(0, true);
-     }
+    // Wrote these into the Byte class. Your code for checkNegative made the value positive. Are you sure about that?
     
     /* OPCODE IMPLEMENTATION */
     
     /**
      * Add with Carry
-     * Adds two bytes together.
+     * Adds register A to an input byte together.
+     * Stores result in A.
      *
      * Used Flags:
      *   V - Set if result is outside the range of a signed byte.
@@ -114,25 +89,23 @@ public class Processor {
      *   Z - Set if result is zero.
      *   C - If set, adds one to the resulting sum.
      *
-     * Implied Parameters:
-     *   In order to function just as the original opcode,
-     *   both src1 and dest will be fixed as the accumulator.
-     *   This is done in the parser class to allow for generalized
-     *   opcode methods.
-     *
      * @param src1 Byte to be added.
      * @param src2 Byte to be added.
      * @param dest Byte to store sum.
      */
-    private void ADC( Byte dest, Byte src1, Byte src2 ) 
+    private void ADC( Byte src1 )
     {
-        int temp = src1.getVal() + src2.getVal();
-        if (P.getBit(7)) temp++; // add the carry if present
+    	int result = src1.getVal() + A.getVal();
+        if ( P.getBit(7) ) result++; // add the carry if present
+        
+        // Does the carry really get cleared?
         P.setBit(7,false); // remove carry if present
-        temp = checkOverflow(temp);
-        temp = checkNegative(temp);
-        checkZero(temp);
-        dest.setVal(temp);
+        
+        // Set result and flags
+        Byte flags = A.setVal( result );
+        P.setBit( P_V, flags.getBit( P_V ) );
+        P.setBit( P_N, flags.getBit( P_N ) );
+        P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
     /**
@@ -153,20 +126,20 @@ public class Processor {
      */
     private void AND( Byte dest, Byte src1, Byte src2 ) 
     {
-      Byte temp;
-      String t1, t2, t3;
-      t1= src1.getValBin();//get strings from the vals
-      t2= src1.getValBin();
-      t3 = "%";
-      for (int i=1; i<t1.length(); i++) //perform a string comp AND
-      {
-        if (t1.charAt(i) == t2.charAt(i)) t3 += t2.charAt(i); // 1 or 0
-        else t3 +="0";// if they dont match, throw out a zero
-      }
-      temp = new Byte(t3); // save ANDed val
-      checkZero(temp.getVal());//set Z flag
-      temp.setVal(checkNegative(temp.getVal())); //set N flag
-      dest.setVal(temp.getVal()); // return result
+        Byte temp;
+        String t1, t2, t3;
+        t1= src1.getValBin();//get strings from the vals
+        t2= src1.getValBin();
+        t3 = "%";
+        for (int i=1; i<t1.length(); i++) //perform a string comp AND
+        {
+            if (t1.charAt(i) == t2.charAt(i)) t3 += t2.charAt(i); // 1 or 0
+            else t3 +="0";// if they dont match, throw out a zero
+        }
+        temp = new Byte(t3); // save ANDed val
+        checkZero(temp.getVal());//set Z flag
+        temp.setVal(checkNegative(temp.getVal())); //set N flag
+        dest.setVal(temp.getVal()); // return result
     }
     
     /**

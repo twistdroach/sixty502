@@ -4,6 +4,7 @@
  *
  * @author Christopher Erickson
  */
+
 public class Register extends Byte {
 
     /**

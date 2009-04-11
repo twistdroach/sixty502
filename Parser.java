@@ -1,12 +1,13 @@
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Parser.java
  * Static class that handles all regex and parsing.
  *
  * @author Christopher Erickson
  */
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Parser {
 
 	/**
