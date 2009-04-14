@@ -2,6 +2,8 @@
  * Processor.java
  * Emulates the NES' main processor
  *
+ * TODO: Correct addition & subtraction when in decimal mode.
+ * 
  * @author Christopher Erickson and Christopher Pable
  */
 
@@ -15,6 +17,8 @@ public class Processor {
     public static final int P_I = 5;
     public static final int P_Z = 6;
     public static final int P_C = 7;
+    /* Stack location */
+    private static final Word stackOffset = new Word( "$0100" );
     /* Registers */         //                   0 1 2 3 4 5 6 7
     private Register P;     // Status register - N|V|1|B|D|I|Z|C
     private Register A;     // Accumulator
@@ -22,9 +26,10 @@ public class Processor {
     private Register Y;     // Index register
     private Register SP;    // Stack Pointer
     private PC PC;          // Program counter
-    /* Program */
+    /* Program & Memory */
     private Program theProgram;
-
+    private Memory theMemory;
+    
     /**
      * Creates an instance of a processor.
      */
@@ -36,6 +41,9 @@ public class Processor {
         Y = new Register();
         SP = new Register();
         PC = new PC();
+        
+        // Initialize the memory
+        theMemory = new Memory();
     }
 
     /**
@@ -98,11 +106,12 @@ public class Processor {
     private void ADC( Byte src1 )
     {
     	int result = src1.getVal() + A.getVal();
-        if ( P.getBit(7) ) result++; // add the carry if present
         
-        // Does the carry really get cleared?
-        // It would make sense, since it should've used it in addition.
-        P.setBit( 7, false ); // remove carry if present
+        // Add the carry if present
+        if ( P.getBit(7) ) result++;
+        
+        // Clear the carry flag
+        P.setBit( P_C, false );
         
         // Set result and flags
         Byte flags = A.setVal( result );
@@ -586,11 +595,70 @@ public class Processor {
         P.setBit( P_N, flags.getBit( P_N ) );
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
+
+    /**
+     * Push Accumulator
+     * Pushes the accumulator onto the stack.
+     */
+    private void PHA()
+    {
+        // Increment the stack pointer
+        SP.setVal( SP.getVal() + 1 );
+        
+        // Determine the address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Store the accumulator
+        theMemory.getByte( addr ).setVal( A.getVal() );
+    }
     
+    /**
+     * Pull Accumulator
+     * Pulls the accumulator from the stack.
+     */
+    private void PLA()
+    {
+        // Determine the address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Decrement the stack pointer
+        SP.setVal( SP.getVal() - 1 );
+        
+        // Store the byte into the accumulator
+        A.setVal( theMemory.getByte( addr ).getVal() );
+    }
     
-    //TODO: Implement Stack to use stack operations
+    /**
+     * Push Processor Status
+     * Pushes the status register onto the stack.
+     */
+    private void PHP()
+    {
+        // Increment the stack pointer
+        SP.setVal( SP.getVal() + 1 );
+        
+        // Determine the address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Store the status register
+        theMemory.getByte( addr ).setVal( P.getVal() );
+    }
     
-    
+    /**
+     * Pull Processor Status
+     * Pulls the the status register from the stack.
+     */
+    private void PLP()
+    {
+        // Determine the address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Decrement the stack pointer
+        SP.setVal( SP.getVal() - 1 );
+        
+        // Store the byte into the status register
+        P.setVal( theMemory.getByte( addr ).getVal() );
+    }
     
     /**
      * Rotate Left
@@ -656,7 +724,59 @@ public class Processor {
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
-    //RTI and RTS Require the Stack
+    /**
+     * Return from Interrupt
+     * Sets the PC and Status register based on the stack.
+     * 
+     * Used Flags:
+     *   All flags
+     */
+    private void RTI()
+    {
+        // Determine the stack address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Pull the status register
+        P.setVal( theMemory.getByte( addr ).getVal() );
+        addr.setVal( addr.getVal() - 1 ); // Traverse stack
+        
+        // Pull the lower byte of the PC
+        Byte lower = theMemory.getByte( addr );
+        addr.setVal( addr.getVal() - 1 ); // Traverse stack
+        
+        // Pull the higer byte of the PC
+        Byte upper = theMemory.getByte( addr );
+        
+        // Set the PC
+        PC.setVal( (upper.getVal() << 4) + lower.getVal() );
+        
+        // Decrement stack pointer
+        SP.setVal( SP.getVal() - 3 );
+    }
+    
+    /**
+     * Return from Subroutine
+     * Sets the PC based on the stack.
+     */
+    private void RTS()
+    {
+        // Determine the stack address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Pull the lower byte of the PC
+        Byte lower = theMemory.getByte( addr );
+        addr.setVal( addr.getVal() - 1 ); // Traverse stack
+        
+        // Pull the higer byte of the PC
+        Byte upper = theMemory.getByte( addr );
+        
+        // Set the PC
+        PC.setVal( (upper.getVal() << 4) + lower.getVal() );
+        PC.setVal( PC.getVal() + 1 ); // Address + 1
+        
+        // Decrement stack pointer
+        SP.setVal( SP.getVal() - 2 );
+    }
     
     /**
      * Subtract with Carry
@@ -675,7 +795,12 @@ public class Processor {
     private void SBC( Byte src1 )
     {
     	int result = A.getVal() - src1.getVal() - 1;
-        if ( P.getBit(7) ) result++; // add the carry if present
+        
+        // Add the carry if present
+        if ( P.getBit(7) ) result++;
+        
+        // Clear the carry flag
+        P.setBit( P_C, false );
         
         // Set result and flags
         Byte flags = A.setVal( result );
@@ -791,7 +916,15 @@ public class Processor {
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
-    //TSX Requires Stack
+    /**
+     * Transfer Stack pointer to X
+     * Copies the value in the stack pointer and stores it in register X.
+     */
+    private void TSX()
+    {
+        // Store SP in X, no flags changed
+        X.setVal( SP.getVal() );
+    }
     
     /**
      * Transfer X to A
@@ -809,7 +942,15 @@ public class Processor {
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
-    //TXS requires stack
+    /**
+     * Transfer X to Stack pointer
+     * Copies the value in register X and stores it in the stack pointer.
+     */
+    private void TXS()
+    {
+        // Store X in SP, no flags changed
+        SP.setVal( X.getVal() );
+    }
     
     /**
      * Transfer Y to A
