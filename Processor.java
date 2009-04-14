@@ -20,12 +20,14 @@ public class Processor {
     private Register A;     // Accumulator
     private Register X;     // Index register
     private Register Y;     // Index register
-    private Register SP;    // Stack pointer ( Usage of page $01 implied )
+    private Register SP;    // Stack Pointer
     private PC PC;          // Program counter
     /* Program */
     private Program theProgram;
 
-    // Default Constructor
+    /**
+     * Creates an instance of a processor.
+     */
     public Processor() {
         // Create registers
         P = new Register();
@@ -36,8 +38,12 @@ public class Processor {
         PC = new PC();
     }
 
-    // MAIN
-    public static void main(String[] args) {
+    /**
+     * Creates a processor and starts using it to run a program.
+     * 
+     * @param args Command line arguments
+     */
+    public static void main( String[] args ) {
         // Create a processor!
         Processor NES = new Processor();
         //System.out.println("" + (Integer.toBinaryString(-128)) );
@@ -52,7 +58,6 @@ public class Processor {
         A.setVal("%10100111");
         X.setVal("%01100100");
         Y.setVal("%00110101");
-        SP.setVal("$ff");
         PC.setVal("%0000000000000000");
         
         // Read in our program
@@ -68,7 +73,6 @@ public class Processor {
         System.out.println("A:\t" + A.getValBin());
         System.out.println("X:\t" + X.getValBin());
         System.out.println("Y:\t" + Y.getValBin());
-        System.out.println("S:\t" + SP.getValHex());
         System.out.println("PC:\t" + PC.getValHex());
     }
      
@@ -97,6 +101,7 @@ public class Processor {
         if ( P.getBit(7) ) result++; // add the carry if present
         
         // Does the carry really get cleared?
+        // It would make sense, since it should've used it in addition.
         P.setBit( 7, false ); // remove carry if present
         
         // Set result and flags

@@ -6,23 +6,31 @@
  */
 
 public class Byte {
-    
     // This class stores a signed byte.
     private byte value;
     
     /**
      * Creates a default Byte ( value = 0 )
      */
-    public Byte () {
+    public Byte() {
         value = 0;
     }
     
     /**
      * Creates a Byte initialized with a starting value.
      * 
-     * @param startingVal The initial value.
+     * @param startingVal The initial value as an integer.
      */
-    public Byte ( String startingVal ) {    
+    public Byte( int startingVal ) {
+        setVal( startingVal );
+    }
+
+    /**
+     * Creates a Byte initialized with a starting value.
+     * 
+     * @param startingVal The initial value as a string.
+     */
+    public Byte( String startingVal ) {    
         setVal( startingVal );
     }
     

@@ -6,7 +6,6 @@
  */
 
 public class Word {
-
     // The two bytes that this Word is composed of
     private Byte low = new Byte();
     private Byte high = new Byte();
@@ -15,15 +14,24 @@ public class Word {
      * Creates a default Word ( value = 0 )
      */
     public Word() {
-        setVal( "0" );
+        setVal( 0 );
     }
     
     /**
      * Creates a Word initialized with a starting value.
      * 
-     * @param startingVal The initial value.
+     * @param startingVal The initial value as an integer.
      */
-    public Word ( String startingVal ) {
+    public Word( int startingVal ) {
+        setVal( startingVal );
+    }
+
+    /**
+     * Creates a Word initialized with a starting value.
+     * 
+     * @param startingVal The initial value as a String.
+     */
+    public Word( String startingVal ) {
         setVal( startingVal );
     }
 
