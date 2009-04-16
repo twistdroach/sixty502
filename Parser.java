@@ -16,12 +16,15 @@ public class Parser {
      * @return True if line contains an instruction.
      */
     public static boolean isInstruction( String line ) {
-        // Setup instruction regex               Instruction  Operand  Comment
-        // This is not perfect and needs to accomodate symbols
-        Pattern instruction = Pattern.compile( "^\\s*\\w{3}\\s+\\w*\\s*(;.*)?$" );
+        // This is not perfect and needs to accomodate symbols        
+        // Setup instruction regex                Label       Inst          Operand         Comment
+        Pattern instruction = Pattern.compile( "^(\\w+:)?\\s*(\\w{3})(\\s+[\\w#<>%\\$]+)?\\s*(;.*)?$" );
         Matcher regex = instruction.matcher( line );
-        if ( regex.find() )
+        if ( regex.find() ) {
+            // For testing, print the instruction
+            System.out.println( regex.group( 2 ) );
             return true;
+        }
         return false;
     }
 }

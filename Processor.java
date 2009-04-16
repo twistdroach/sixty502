@@ -54,39 +54,34 @@ public class Processor {
     public static void main( String[] args ) {
         // Create a processor!
         Processor NES = new Processor();
-        //System.out.println("" + (Integer.toBinaryString(-128)) );
-        NES.start();
-    }
-    
-    // Starts the processor
-    private void start() {
-        // Initialize registers
-        // Obviously, most of these values are meaningless
-        P.setVal("%00000000");
-        A.setVal("%10100111");
-        X.setVal("%01100100");
-        Y.setVal("%00110101");
-        PC.setVal("%0000000000000000");
         
-        // Read in our program
-        theProgram = new Program( "test.asm" );
+        // Run a program!
+        if ( args.length == 1 ) {
+            NES.start( args[0] );
+        }
+    }
 
-        // Print it out
-        System.out.println( theProgram );
+    /**
+     * Index the program and start the processor.
+     */
+    private void start( String programName ) {
+       
+        // Read in our program
+        theProgram = new Program( programName );
+
+        // Program class has tester built in
     }
     
-    // Prints out the value of each register, used for testing
+    /**
+     * Print the value of all registers, used for debugging.
+     */
     private void printAllRegisters() {
-        System.out.println("Status:\t" + P.getValBin());
-        System.out.println("A:\t" + A.getValBin());
-        System.out.println("X:\t" + X.getValBin());
-        System.out.println("Y:\t" + Y.getValBin());
-        System.out.println("PC:\t" + PC.getValHex());
+        System.out.println( "Status:\t" + P.getValBin() + " " + P.getValHex() );
+        System.out.println( "A:\t" + A.getValBin() + " " + A.getValHex() );
+        System.out.println( "X:\t" + X.getValBin() + " " + X.getValHex() );
+        System.out.println( "Y:\t" + Y.getValBin() + " " + Y.getValHex() );
+        System.out.println( "PC:\t" + PC.getValHex() );
     }
-     
-    // OPCODE HELPERS
-    
-    // Wrote these into the Byte class. Your code for checkNegative made the value positive. Are you sure about that?
     
     /* OPCODE IMPLEMENTATION */
     

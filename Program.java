@@ -15,8 +15,8 @@ import java.util.Vector;
 
 public class Program {
     /* Class Variables */
-    Vector<String> theProgram;  // Stores the program.
-    Vector<Integer> instTable;  // Keeps track of where instructions are located in theProgram.
+    public Vector<String> theProgram;  // Stores the program.
+    public Vector<Integer> instTable;  // Keeps track of where instructions are located in theProgram.
 
     /**
      * Creates an instance of Program.
@@ -100,7 +100,7 @@ public class Program {
      * 
      * @return theProgram as a String.
      */
-@Override
+    @Override
     public String toString() {
         String retString = "";
         for ( int i = 0; i < theProgram.size(); i++ ) {
