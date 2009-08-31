@@ -7,7 +7,8 @@
  * @author Christopher Erickson and Christopher Pable
  */
 
-public class Processor {
+public class Processor
+{
     /* Status bit positions */
     public static final int P_N = 0;
     public static final int P_V = 1;
@@ -20,20 +21,20 @@ public class Processor {
     /* Stack location */
     private static final Word stackOffset = new Word( "$0100" );
     /* Registers */         //                   0 1 2 3 4 5 6 7
-    private Register P;     // Status register - N|V|1|B|D|I|Z|C
-    private Register A;     // Accumulator
-    private Register X;     // Index register
-    private Register Y;     // Index register
-    private Register SP;    // Stack Pointer
-    private PC PC;          // Program counter
+    public static Register P;     // Status register - N|V|1|B|D|I|Z|C
+    public static Register A;     // Accumulator
+    public static Register X;     // Index register
+    public static Register Y;     // Index register
+    public static Register SP;    // Stack Pointer
+    public static PC PC;          // Program counter
     /* Program & Memory */
     private Program theProgram;
-    private Memory theMemory;
     
     /**
      * Creates an instance of a processor.
      */
-    public Processor() {
+    public Processor()
+    {
         // Create registers
         P = new Register();
         A = new Register();
@@ -41,9 +42,6 @@ public class Processor {
         Y = new Register();
         SP = new Register();
         PC = new PC();
-        
-        // Initialize the memory
-        theMemory = new Memory();
     }
 
     /**
@@ -51,12 +49,14 @@ public class Processor {
      * 
      * @param args Command line arguments
      */
-    public static void main( String[] args ) {
+    public static void main( String[] args )
+    {
         // Create a processor!
         Processor NES = new Processor();
         
         // Run a program!
-        if ( args.length == 1 ) {
+        if ( args.length == 1 )
+        {
             NES.start( args[0] );
         }
     }
@@ -64,23 +64,223 @@ public class Processor {
     /**
      * Index the program and start the processor.
      */
-    private void start( String programName ) {
-       
+    private void start( String programName )
+    {       
         // Read in our program
         theProgram = new Program( programName );
-
-        // Program class has tester built in
+        
+        // Execute the program
+        for( int i = 0; i < theProgram.numInstructions(); ++i )
+        {
+        	Instruction curInst = theProgram.getInstruction( i );
+        	// Decode the operand
+        	Byte operand = Parser.getReferenced( curInst.getOperand(), curInst.getOffset() );
+        	// Decode the opcode
+        	String opcode = curInst.getOpcode();
+        	if ( opcode.equals("adc") || opcode.equals("ADC") )
+        	{
+        		ADC( operand );
+        	}
+        	else if ( opcode.equals("and") || opcode.equals("AND") )
+        	{
+        		AND( operand );
+        	}
+        	else if ( opcode.equals("asl") || opcode.equals("ASL") )
+        	{
+        		ASL( operand );
+        	}
+        	else if ( opcode.equals("brk") || opcode.equals("BRK") )
+        	{
+        		BRK();
+        	}
+        	else if ( opcode.equals("clc") || opcode.equals("CLC") )
+        	{
+        		CLC();
+        	}
+        	else if ( opcode.equals("cld") || opcode.equals("CLD") )
+        	{
+        		CLD();
+        	}
+        	else if ( opcode.equals("cli") || opcode.equals("CLI") )
+        	{
+        		CLI();
+        	}
+        	else if ( opcode.equals("clv") || opcode.equals("CLV") )
+        	{
+        		CLV();
+        	}
+        	else if ( opcode.equals("cmp") || opcode.equals("CMP") )
+        	{
+        		CMP( operand );
+        	}
+        	else if ( opcode.equals("cpx") || opcode.equals("CPX") )
+        	{
+        		CPX( operand );
+        	}
+        	else if ( opcode.equals("cpy") || opcode.equals("CPY") )
+        	{
+        		CPY( operand );
+        	}
+        	else if ( opcode.equals("dec") || opcode.equals("DEC") )
+        	{
+        		DEC( operand );
+        	}
+        	else if ( opcode.equals("dex") || opcode.equals("DEX") )
+        	{
+        		DEX();
+        	}
+        	else if ( opcode.equals("dey") || opcode.equals("DEY") )
+        	{
+        		DEY();
+        	}
+        	else if ( opcode.equals("eor") || opcode.equals("EOR") )
+        	{
+        		EOR( operand );
+        	}
+        	else if ( opcode.equals("inc") || opcode.equals("INC") )
+        	{
+        		INC( operand );
+        	}
+        	else if ( opcode.equals("inx") || opcode.equals("INX") )
+        	{
+        		INX();
+        	}
+        	else if ( opcode.equals("iny") || opcode.equals("INY") )
+        	{
+        		INY();
+        	}
+        	else if ( opcode.equals("lda") || opcode.equals("LDA") )
+        	{
+        		LDA( operand );
+        	}
+        	else if ( opcode.equals("ldx") || opcode.equals("LDX") )
+        	{
+        		LDX( operand );
+        	}
+        	else if ( opcode.equals("ldy") || opcode.equals("LDY") )
+        	{
+        		LDY( operand );
+        	}
+        	else if ( opcode.equals("lsr") || opcode.equals("LSR") )
+        	{
+        		LSR( operand );
+        	}
+        	else if ( opcode.equals("nop") || opcode.equals("NOP") )
+        	{
+        		NOP();
+        	}
+        	else if ( opcode.equals("ora") || opcode.equals("ORA") )
+        	{
+        		ORA( operand );
+        	}
+        	else if ( opcode.equals("pha") || opcode.equals("PHA") )
+        	{
+        		PHA();
+        	}
+        	else if ( opcode.equals("php") || opcode.equals("PHP") )
+        	{
+        		PHP();
+        	}
+        	else if ( opcode.equals("pla") || opcode.equals("PLA") )
+        	{
+        		PLA();
+        	}
+        	else if ( opcode.equals("plp") || opcode.equals("PLP") )
+        	{
+        		PLP();
+        	}
+        	else if ( opcode.equals("rol") || opcode.equals("ROL") )
+        	{
+        		ROL( operand );
+        	}
+        	else if ( opcode.equals("ror") || opcode.equals("ROR") )
+        	{
+        		ROR( operand );
+        	}
+        	else if ( opcode.equals("rti") || opcode.equals("RTI") )
+        	{
+        		RTI();
+        	}
+        	else if ( opcode.equals("rts") || opcode.equals("RTS") )
+        	{
+        		RTS();
+        	}
+        	else if ( opcode.equals("sbc") || opcode.equals("SBC") )
+        	{
+        		SBC( operand );
+        	}
+        	else if ( opcode.equals("sec") || opcode.equals("SEC") )
+        	{
+        		SEC();
+        	}
+        	else if ( opcode.equals("sed") || opcode.equals("SED") )
+        	{
+        		SED();
+        	}
+        	else if ( opcode.equals("sei") || opcode.equals("SEI") )
+        	{
+        		SEI();
+        	}
+        	else if ( opcode.equals("sta") || opcode.equals("STA") )
+        	{
+        		STA( operand );
+        	}
+        	else if ( opcode.equals("stx") || opcode.equals("STX") )
+        	{
+        		STX( operand );
+        	}
+        	else if ( opcode.equals("sty") || opcode.equals("STY") )
+        	{
+        		STY( operand );
+        	}
+        	else if ( opcode.equals("tax") || opcode.equals("TAX") )
+        	{
+        		TAX();
+        	}
+        	else if ( opcode.equals("tay") || opcode.equals("TAY") )
+        	{
+        		TAY();
+        	}
+        	else if ( opcode.equals("tsx") || opcode.equals("TSX") )
+        	{
+        		TSX();
+        	}
+        	else if ( opcode.equals("txa") || opcode.equals("TXA") )
+        	{
+        		TXA();
+        	}
+        	else if ( opcode.equals("txs") || opcode.equals("TXS") )
+        	{
+        		TXS();
+        	}
+        	else if ( opcode.equals("tya") || opcode.equals("TYA") )
+        	{
+        		TYA();
+        	}
+        	else
+        	{
+        		System.out.println( "Unsupported opcode: " + opcode );
+        	}
+        	
+        	// Print the actual processed opcode
+        	System.out.println( curInst.getOpcode() + " " + curInst.getOperand() + " " +  curInst.getOffset() );
+        	// Print status of the processor
+        	printAllRegisters();
+        }
     }
     
     /**
      * Print the value of all registers, used for debugging.
      */
-    private void printAllRegisters() {
-        System.out.println( "Status:\t" + P.getValBin() + " " + P.getValHex() );
-        System.out.println( "A:\t" + A.getValBin() + " " + A.getValHex() );
-        System.out.println( "X:\t" + X.getValBin() + " " + X.getValHex() );
-        System.out.println( "Y:\t" + Y.getValBin() + " " + Y.getValHex() );
-        System.out.println( "PC:\t" + PC.getValHex() );
+    private void printAllRegisters()
+    {
+    	System.out.println( "--------------------------------------------------" );
+        System.out.println( "Status: " + P.getValBin() + " " + P.getValHex() );
+        System.out.println( "A:      " + A.getValBin() + " " + A.getValHex() );
+        System.out.println( "X:      " + X.getValBin() + " " + X.getValHex() );
+        System.out.println( "Y:      " + Y.getValBin() + " " + Y.getValHex() );
+        System.out.println( "PC:     " + PC.getValHex() );
+        System.out.println( "--------------------------------------------------" );
     }
     
     /* OPCODE IMPLEMENTATION */
@@ -103,7 +303,8 @@ public class Processor {
     	int result = src1.getVal() + A.getVal();
         
         // Add the carry if present
-        if ( P.getBit(7) ) result++;
+        if ( P.getBit(7) )
+        	result++;
         
         // Clear the carry flag
         P.setBit( P_C, false );
@@ -131,10 +332,14 @@ public class Processor {
         Byte result = new Byte();
         
         // AND bit by bit
-        for ( int i = 0; i < 8; i++ ) {
-            if ( A.getBit(i) && src1.getBit(i) ) {
+        for ( int i = 0; i < 8; ++i )
+        {
+            if ( A.getBit(i) && src1.getBit(i) )
+            {
                 result.setBit( i, true );
-            } else {
+            }
+            else
+            {
                 result.setBit( i, false );
             }
         }
@@ -164,7 +369,8 @@ public class Processor {
         // Shift bit 7 into the carry
         P.setBit( P_C , src1.getBit(7) );
         // Shift all bits left
-        for ( int i = 7; i > 0; i-- ) {
+        for ( int i = 7; i > 0; --i )
+        {
             result.setBit( i, src1.getBit(i-1) );
         }
         // Shift in zero
@@ -259,15 +465,20 @@ public class Processor {
     private void CMP( Byte src1 )
     {
         // Simply set flags based on A and src1
-        if ( A.getVal() < src1.getVal() ) {
+        if ( A.getVal() < src1.getVal() )
+        {
             P.setBit( P_N, true );
             P.setBit( P_Z, false );
             P.setBit( P_C, false );
-        } else if ( A.getVal() > src1.getVal() ) {
+        }
+        else if ( A.getVal() > src1.getVal() )
+        {
             P.setBit( P_N, false );
             P.setBit( P_Z, false );
             P.setBit( P_C, true );
-        } else {
+        }
+        else
+        {
             P.setBit( P_N, false );
             P.setBit( P_Z, true );
             P.setBit( P_C, true );
@@ -288,15 +499,20 @@ public class Processor {
     private void CPX( Byte src1 )
     {
         // Simply set flags based on X and src1
-        if ( X.getVal() < src1.getVal() ) {
+        if ( X.getVal() < src1.getVal() )
+        {
             P.setBit( P_N, true );
             P.setBit( P_Z, false );
             P.setBit( P_C, false );
-        } else if ( X.getVal() > src1.getVal() ) {
+        }
+        else if ( X.getVal() > src1.getVal() )
+        {
             P.setBit( P_N, false );
             P.setBit( P_Z, false );
             P.setBit( P_C, true );
-        } else {
+        }
+        else
+        {
             P.setBit( P_N, false );
             P.setBit( P_Z, true );
             P.setBit( P_C, true );
@@ -317,15 +533,20 @@ public class Processor {
     private void CPY( Byte src1 )
     {
         // Simply set flags based on Y and src1
-        if ( Y.getVal() < src1.getVal() ) {
+        if ( Y.getVal() < src1.getVal() )
+        {
             P.setBit( P_N, true );
             P.setBit( P_Z, false );
             P.setBit( P_C, false );
-        } else if ( Y.getVal() > src1.getVal() ) {
+        }
+        else if ( Y.getVal() > src1.getVal() )
+        {
             P.setBit( P_N, false );
             P.setBit( P_Z, false );
             P.setBit( P_C, true );
-        } else {
+        }
+        else
+        {
             P.setBit( P_N, false );
             P.setBit( P_Z, true );
             P.setBit( P_C, true );
@@ -397,10 +618,14 @@ public class Processor {
         Byte result = new Byte();
         
         // XOR bit by bit
-        for ( int i = 0; i < 8; i++ ) {
-            if ( A.getBit(i) != src1.getBit(i) ) {
+        for ( int i = 0; i < 8; ++i )
+        {
+            if ( A.getBit(i) != src1.getBit(i) )
+            {
                 result.setBit( i, true );
-            } else {
+            }
+            else
+            {
                 result.setBit( i, false );
             }
         }
@@ -540,7 +765,8 @@ public class Processor {
         // Shift bit 0 into the carry
         P.setBit( P_C , src1.getBit(0) );
         // Shift all bits right
-        for ( int i = 0; i < 7; i++ ) {
+        for ( int i = 0; i < 7; ++i )
+        {
             result.setBit( i, src1.getBit(i+1) );
         }
         // Shift in zero
@@ -577,10 +803,14 @@ public class Processor {
         Byte result = new Byte();
         
         // OR bit by bit
-        for ( int i = 0; i < 8; i++ ) {
-            if ( A.getBit(i) || src1.getBit(i) ) {
+        for ( int i = 0; i < 8; ++i )
+        {
+            if ( A.getBit(i) || src1.getBit(i) )
+            {
                 result.setBit( i, true );
-            } else {
+            } 
+            else
+            {
                 result.setBit( i, false );
             }
         }
@@ -604,7 +834,7 @@ public class Processor {
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Store the accumulator
-        theMemory.getByte( addr ).setVal( A.getVal() );
+        Memory.getByte( addr ).setVal( A.getVal() );
     }
     
     /**
@@ -620,7 +850,7 @@ public class Processor {
         SP.setVal( SP.getVal() - 1 );
         
         // Store the byte into the accumulator
-        A.setVal( theMemory.getByte( addr ).getVal() );
+        A.setVal( Memory.getByte( addr ).getVal() );
     }
     
     /**
@@ -636,7 +866,7 @@ public class Processor {
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Store the status register
-        theMemory.getByte( addr ).setVal( P.getVal() );
+        Memory.getByte( addr ).setVal( P.getVal() );
     }
     
     /**
@@ -652,7 +882,7 @@ public class Processor {
         SP.setVal( SP.getVal() - 1 );
         
         // Store the byte into the status register
-        P.setVal( theMemory.getByte( addr ).getVal() );
+        P.setVal( Memory.getByte( addr ).getVal() );
     }
     
     /**
@@ -677,7 +907,8 @@ public class Processor {
         // Shift bit 7 into the carry
         P.setBit( P_C , src1.getBit(7) );
         // Shift all bits left
-        for ( int i = 7; i > 0; i-- ) {
+        for ( int i = 7; i > 0; --i )
+        {
             result.setBit( i, src1.getBit(i-1) );
         }
 
@@ -709,7 +940,8 @@ public class Processor {
         // Shift bit 0 into the carry
         P.setBit( P_C , src1.getBit(0) );
         // Shift all bits right
-        for ( int i = 0; i < 7; i++ ) {
+        for ( int i = 0; i < 7; ++i )
+        {
             result.setBit( i, src1.getBit(i+1) );
         }
 
@@ -732,15 +964,15 @@ public class Processor {
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Pull the status register
-        P.setVal( theMemory.getByte( addr ).getVal() );
+        P.setVal( Memory.getByte( addr ).getVal() );
         addr.setVal( addr.getVal() - 1 ); // Traverse stack
         
         // Pull the lower byte of the PC
-        Byte lower = theMemory.getByte( addr );
+        Byte lower = Memory.getByte( addr );
         addr.setVal( addr.getVal() - 1 ); // Traverse stack
         
         // Pull the higer byte of the PC
-        Byte upper = theMemory.getByte( addr );
+        Byte upper = Memory.getByte( addr );
         
         // Set the PC
         PC.setVal( (upper.getVal() << 4) + lower.getVal() );
@@ -759,14 +991,14 @@ public class Processor {
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Pull the lower byte of the PC
-        Byte lower = theMemory.getByte( addr );
+        Byte lower = Memory.getByte( addr );
         addr.setVal( addr.getVal() - 1 ); // Traverse stack
         
-        // Pull the higer byte of the PC
-        Byte upper = theMemory.getByte( addr );
+        // Pull the higher byte of the PC
+        Byte upper = Memory.getByte( addr );
         
         // Set the PC
-        PC.setVal( (upper.getVal() << 4) + lower.getVal() );
+        PC.setVal( ( upper.getVal() << 4 ) + lower.getVal() );
         PC.setVal( PC.getVal() + 1 ); // Address + 1
         
         // Decrement stack pointer

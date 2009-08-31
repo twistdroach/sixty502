@@ -5,12 +5,13 @@
  * @author Christopher Erickson
  */
 
-public class Register extends Byte {
-
+public class Register extends Byte
+{
     /**
      * Creates a default Register ( value = 0 )
      */
-    public Register() {
+    public Register()
+    {
         super();
     }
     
@@ -19,12 +20,14 @@ public class Register extends Byte {
      * 
      * @param startingVal The initial value.
      */
-    public Register( String startingVal ) {
+    public Register( String startingVal )
+    {
         super( startingVal );
     }
     
     // Set all bits to zero unless the given flags are set
-    public void clear( boolean flag ) {
+    public void clear( boolean flag )
+    {
         setVal( 0 );
         if (flag)
             setBit( 4, true );

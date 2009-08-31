@@ -13,10 +13,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Vector;
 
-public class Program {
+public class Program
+{
     /* Class Variables */
-    public Vector<String> theProgram;  // Stores the program.
-    public Vector<Integer> instTable;  // Keeps track of where instructions are located in theProgram.
+    private Vector<String> data;  // Stores the program text
+    private Vector<Instruction> instructions; // Stores the program instructions, parsed
 
     /**
      * Creates an instance of Program.
@@ -24,14 +25,40 @@ public class Program {
      * 
      * @param fileName Location of the file to be read.
      */
-    public Program( String fileName ) {
+    public Program( String fileName )
+    {
         // Read the file in as a vector
-        theProgram = asmFileToVector( fileName );
+        data = readInAsmFile( fileName );
         // Parse the instructions and index them
-        instTable = parseInstructions();
-        System.out.println( "Number of instructions: " + instTable.size() );
+        instructions = Parser.getInstructions( data );
     }
 
+    /**
+     * Returns the instruction at the specified index.
+     * 
+     * @param instIndex Index of the instruction to return.
+     * @return Instruction at instIndex.
+     */
+    public Instruction getInstruction( int instIndex )
+    {
+    	if ( instIndex < 0 || instIndex > instructions.size() )
+    	{
+    		// Out of bounds
+    		return null;
+    	}
+    	return instructions.get( instIndex );
+    }
+    
+    /**
+     * Returns the number of instructions parsed out of the assembly.
+     * 
+     * @return Number of instructions parsed.
+     */
+    public int numInstructions()
+    {
+    	return instructions.size();
+    }
+    
     /**
      * Creates a vector from a 6502 asm file.
      * Based on code from:
@@ -40,26 +67,31 @@ public class Program {
      * @param asmFile The full location of the input file.
      * @return Vector containing all the lines of the file.
      */
-    public Vector<String> asmFileToVector( String asmFile ) {
+    public Vector<String> readInAsmFile( String asmFile )
+    {
         // Okay, maybe there's room for just a little Spaceballs humor :)
         Vector<String> victor = new Vector<String>();
         String curLine;
-        try {
+        try
+        {
             File asm = new File( asmFile );
             BufferedReader buffReader = new BufferedReader(
                                             new InputStreamReader(
                                                 new FileInputStream( asm )));
 
-            while ( ( curLine = buffReader.readLine() ) != null ) {
+            while ( ( curLine = buffReader.readLine() ) != null )
+            {
                 victor.addElement( curLine );
             }
 
             buffReader.close();
         }
-        catch (FileNotFoundException ex) {
+        catch (FileNotFoundException ex)
+        {
             System.out.println( "File not found!" );
         }
-        catch (IOException ex) {
+        catch (IOException ex)
+        {
             System.out.println( "I/O Error!" );
         }
         // Return the vector
@@ -72,27 +104,15 @@ public class Program {
      * @param asmString The newline-delimited string containing asm.
      * @return Vector containing all the lines of the file.
      */
-    public Vector<String> asmToVector( String asm ) {
+    public Vector<String> asmToVector( String asm )
+    {
         Vector<String> victor = new Vector<String>();
         String[] asmString = asm.split( "\\n" );
-        for ( int i = 0; i < asmString.length; i++ ) {
+        for ( int i = 0; i < asmString.length; ++i )
+        {
             victor.addElement( asmString[i] );
         }
         return victor;
-    }
-
-    /**
-     * Creates an ArrayList indicative of the location of instructions in theProgram.
-     * 
-     * @return ArrayList containing the indicies of instructions.
-     */
-    public Vector<Integer> parseInstructions() {
-        Vector<Integer> retArray = new Vector<Integer>();
-        for ( int i = 0; i < theProgram.size(); i++ ) {
-            if ( Parser.isInstruction( theProgram.get( i ) ) )
-                retArray.add( i );
-        }
-        return retArray;
     }
 
     /**
@@ -101,10 +121,12 @@ public class Program {
      * @return theProgram as a String.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         String retString = "";
-        for ( int i = 0; i < theProgram.size(); i++ ) {
-            retString += theProgram.get( i ) + "\n";
+        for ( int i = 0; i < data.size(); ++i )
+        {
+            retString += data.get( i ) + "\n";
         }
         return retString;
     }
