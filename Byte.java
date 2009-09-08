@@ -8,7 +8,7 @@
 public class Byte
 {
     // This class stores a signed byte.
-    private byte value;
+    private int value;
     
     /**
      * Creates a default Byte ( value = 0 )

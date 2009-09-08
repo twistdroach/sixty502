@@ -20,7 +20,7 @@ public class Processor
     public static final int P_C = 7;
     /* Stack location */
     private static final Word stackOffset = new Word( "$0100" );
-    /* Registers */         //                   0 1 2 3 4 5 6 7
+    /* Registers */   		      //                   0 1 2 3 4 5 6 7
     public static Register P;     // Status register - N|V|1|B|D|I|Z|C
     public static Register A;     // Accumulator
     public static Register X;     // Index register
@@ -66,6 +66,10 @@ public class Processor
      */
     private void start( String programName )
     {       
+    	// Print some information
+    	System.out.println( "--------------------------------------------------" );
+    	System.out.println( "6502 Emulator by Chris Pable and Chris Erickson" );
+    	System.out.println( "--------------------------------------------------" );
         // Read in our program
         theProgram = new Program( programName );
         
@@ -263,9 +267,11 @@ public class Processor
         	}
         	
         	// Print the actual processed opcode
-        	System.out.println( curInst.getOpcode() + " " + curInst.getOperand() + " " +  curInst.getOffset() );
+        	System.out.println( "Instruction: " + curInst.getOpcode() + " " + curInst.getOperand() + " " +  curInst.getOffset() );
         	// Print status of the processor
         	printAllRegisters();
+        	// Increment the PC
+        	PC.setVal( PC.getVal() + 1 );
         }
     }
     
@@ -303,7 +309,7 @@ public class Processor
     	int result = src1.getVal() + A.getVal();
         
         // Add the carry if present
-        if ( P.getBit(7) )
+        if ( P.getBit( P_C ) )
         	result++;
         
         // Clear the carry flag
