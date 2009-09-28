@@ -1,9 +1,37 @@
-; a = 2 + 2 (4)
+; Simple 6502 Emulator test
+
+; A = 2 + 2 (4)
 lda #2
 adc #2
-; transfer a -> x
+
+; A -> X
 tax
-; a = 0x22 + 0x10 + 1 (0x33)
+
+; A = 0x22 + 0x10 + 1 (0x33)
 lda #$22
-sec ; plus one
+sec	; Set the carry
 adc #$10
+
+; Some memory usage
+sta $02	; A -> MEM[0x02]
+ldx $02	; MEM[0x02] -> X
+
+; Stack example
+lda #$32; Load A with 0x32
+pha	; Push 0x32 onto the stack
+adc #1	; Add one to A
+pha	; Push 0x33 onto the stack
+pla	; Pull 0x33 from the stack
+pla	; Pull 0x32 from the stack
+
+; Status stack usage
+php	; Push the status reg. onto the stack
+sec	; Set the carry flag
+sei	; Set the interrupt flag
+plp
+
+; Loop example
+lda #3	; Load A with 3
+adc #1	; Add one to A
+cmp #5	; Repeat while A < 5
+bpl #19

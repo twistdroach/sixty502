@@ -62,6 +62,9 @@ public class Parser
      */
     public static Byte getReferenced( String operand, String offset )
     {
+    	// Provide access to the memory
+    	Memory theMemory = Memory.getInstance();
+    	
     	if ( operand == null )
     	{
     		return null; // No operand
@@ -91,11 +94,11 @@ public class Parser
     				// Only dereferencing the operand - This means is has to be a Byte
     				operand = operand.substring( 1, operand.length() - 1 );
     				// Get the referenced Word in memory
-    				Word byteAddr = Memory.getWord( new Byte( operand ) );
+    				Word byteAddr = theMemory.getWord( new Byte( operand ) );
     				// Add the offset (must be y, so we'll assume)
     				int finalAddr = byteAddr.getVal() + Processor.Y.getVal();
     				// Return the referenced Byte
-    				return Memory.getByte( new Word( finalAddr ) );
+    				return theMemory.getByte( new Word( finalAddr ) );
     			}
     			else if ( offset.charAt( offset.length() - 1 ) == ')' )
     			{
@@ -104,9 +107,9 @@ public class Parser
     				// Add the offset (must be x, so we'll assume)
     				int finalAddr = new Byte( operand ).getVal() + Processor.X.getVal();
     				// Get the referenced Word in memory
-    				Word byteAddr = Memory.getWord( new Byte( finalAddr ) );
+    				Word byteAddr = theMemory.getWord( new Byte( finalAddr ) );
     				// Return the referenced Byte
-    				return Memory.getByte( byteAddr );
+    				return theMemory.getByte( byteAddr );
     			}
     			else
     			{
@@ -120,16 +123,16 @@ public class Parser
     			if ( offset == null )
     			{
     				// Could be word or byte
-    				return Memory.getByte( new Word( operand ) );
+    				return theMemory.getByte( new Word( operand ) );
     			}
     			
     			if ( offset.charAt( 0 ) == 'x' || offset.charAt( 0 ) == 'X' )
     			{
-    				return Memory.getByte( new Word ( new Byte( operand ).getVal() + Processor.X.getVal() ) );
+    				return theMemory.getByte( new Word ( new Byte( operand ).getVal() + Processor.X.getVal() ) );
     			}
     			else if ( offset.charAt( 0 ) == 'y' || offset.charAt( 0 ) == 'Y' )
     			{
-        			return Memory.getByte( new Word ( new Byte( operand ).getVal() + Processor.Y.getVal() ) );
+        			return theMemory.getByte( new Word ( new Byte( operand ).getVal() + Processor.Y.getVal() ) );
     			}
     			else
     			{

@@ -29,6 +29,7 @@ public class Processor
     public static PC PC;          // Program counter
     /* Program & Memory */
     private Program theProgram;
+	private Memory theMemory;
     
     /**
      * Creates an instance of a processor.
@@ -42,6 +43,9 @@ public class Processor
         Y = new Register();
         SP = new Register();
         PC = new PC();
+        
+        // Get an instance of the memory
+        theMemory = Memory.getInstance();
     }
 
     /**
@@ -74,9 +78,9 @@ public class Processor
         theProgram = new Program( programName );
         
         // Execute the program
-        for( int i = 0; i < theProgram.numInstructions(); ++i )
+        while ( PC.getVal() < theProgram.numInstructions() )
         {
-        	Instruction curInst = theProgram.getInstruction( i );
+        	Instruction curInst = theProgram.getInstruction( PC.getVal() );
         	// Decode the operand
         	Byte operand = Parser.getReferenced( curInst.getOperand(), curInst.getOffset() );
         	// Decode the opcode
@@ -92,6 +96,14 @@ public class Processor
         	else if ( opcode.equals("asl") || opcode.equals("ASL") )
         	{
         		ASL( operand );
+        	}
+        	else if ( opcode.equals("beq") || opcode.equals("BEQ") )
+        	{
+        		BEQ( operand );
+        	}
+        	else if ( opcode.equals("bpl") || opcode.equals("BPL") )
+        	{
+        		BPL( operand );
         	}
         	else if ( opcode.equals("brk") || opcode.equals("BRK") )
         	{
@@ -152,6 +164,14 @@ public class Processor
         	else if ( opcode.equals("iny") || opcode.equals("INY") )
         	{
         		INY();
+        	}
+        	else if ( opcode.equals("jmp") || opcode.equals("JMP") )
+        	{
+        		JMP( operand );
+        	}
+        	else if ( opcode.equals("jsr") || opcode.equals("JSR") )
+        	{
+        		JSR( operand );
         	}
         	else if ( opcode.equals("lda") || opcode.equals("LDA") )
         	{
@@ -388,7 +408,31 @@ public class Processor
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
-    //BCC, BCS, BEQ, BIT, BMI, BNE, BPL, BVC, BVS handled by parser
+    //BCC, BCS, BIT, BMI, BNE, BVC, BVS to come
+    
+    /**
+     * Branch on Equal
+     */
+    private void BEQ( Byte src1 )
+    {
+    	if ( P.getBit( P_N ) == false && P.getBit( P_Z ) == true && P.getBit( P_C ) == true )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
+    
+    /**
+     * Branch on Greater Than
+     */
+    private void BPL( Byte src1 )
+    {
+    	if ( P.getBit( P_N ) == true && P.getBit( P_Z ) == false && P.getBit( P_C ) == false )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
     
     /**
      * Break
@@ -696,7 +740,34 @@ public class Processor
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
 
-    //JMP and JSR handled by parser
+    /**
+     * Jump
+     * Jumps to the instruction at the given address.
+     */
+    private void JMP( Byte src1 )
+    {
+    	// Set the PC to the next instruction to be executed - 1
+    	PC.setVal( src1.getVal() - 1 );
+    }
+
+    /**
+     * Jump to Subroutine
+     * Pushes the PC+1 onto the stack and jumps.
+     */
+    private void JSR( Byte src1 )
+    {
+        // Increment the stack pointer
+        SP.setVal( SP.getVal() + 1 );
+        
+        // Determine the address in memory
+        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
+        
+        // Store the PC
+        theMemory.getByte( addr ).setVal( PC.getVal() + 1 );
+        
+        // Jump to src1
+        PC.setVal( src1.getVal() - 1 );
+    }
     
     /**
      * Load Accumulator
@@ -840,7 +911,7 @@ public class Processor
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Store the accumulator
-        Memory.getByte( addr ).setVal( A.getVal() );
+        theMemory.getByte( addr ).setVal( A.getVal() );
     }
     
     /**
@@ -856,7 +927,7 @@ public class Processor
         SP.setVal( SP.getVal() - 1 );
         
         // Store the byte into the accumulator
-        A.setVal( Memory.getByte( addr ).getVal() );
+        A.setVal( theMemory.getByte( addr ).getVal() );
     }
     
     /**
@@ -872,7 +943,7 @@ public class Processor
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Store the status register
-        Memory.getByte( addr ).setVal( P.getVal() );
+        theMemory.getByte( addr ).setVal( P.getVal() );
     }
     
     /**
@@ -888,7 +959,7 @@ public class Processor
         SP.setVal( SP.getVal() - 1 );
         
         // Store the byte into the status register
-        P.setVal( Memory.getByte( addr ).getVal() );
+        P.setVal( theMemory.getByte( addr ).getVal() );
     }
     
     /**
@@ -970,15 +1041,15 @@ public class Processor
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Pull the status register
-        P.setVal( Memory.getByte( addr ).getVal() );
+        P.setVal( theMemory.getByte( addr ).getVal() );
         addr.setVal( addr.getVal() - 1 ); // Traverse stack
         
         // Pull the lower byte of the PC
-        Byte lower = Memory.getByte( addr );
+        Byte lower = theMemory.getByte( addr );
         addr.setVal( addr.getVal() - 1 ); // Traverse stack
         
         // Pull the higer byte of the PC
-        Byte upper = Memory.getByte( addr );
+        Byte upper = theMemory.getByte( addr );
         
         // Set the PC
         PC.setVal( (upper.getVal() << 4) + lower.getVal() );
@@ -997,11 +1068,11 @@ public class Processor
         Word addr = new Word( stackOffset.getVal() + SP.getVal() );
         
         // Pull the lower byte of the PC
-        Byte lower = Memory.getByte( addr );
+        Byte lower = theMemory.getByte( addr );
         addr.setVal( addr.getVal() - 1 ); // Traverse stack
         
         // Pull the higher byte of the PC
-        Byte upper = Memory.getByte( addr );
+        Byte upper = theMemory.getByte( addr );
         
         // Set the PC
         PC.setVal( ( upper.getVal() << 4 ) + lower.getVal() );
