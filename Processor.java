@@ -97,9 +97,25 @@ public class Processor
         	{
         		ASL( operand );
         	}
+        	else if ( opcode.equals("bcc") || opcode.equals("BCC") )
+        	{
+        		BCC( operand );
+        	}
+        	else if ( opcode.equals("bcs") || opcode.equals("BCS") )
+        	{
+        		BCS( operand );
+        	}
         	else if ( opcode.equals("beq") || opcode.equals("BEQ") )
         	{
         		BEQ( operand );
+        	}
+        	else if ( opcode.equals("bmi") || opcode.equals("BMI") )
+        	{
+        		BMI( operand );
+        	}
+        	else if ( opcode.equals("bne") || opcode.equals("BNE") )
+        	{
+        		BNE( operand );
         	}
         	else if ( opcode.equals("bpl") || opcode.equals("BPL") )
         	{
@@ -108,6 +124,14 @@ public class Processor
         	else if ( opcode.equals("brk") || opcode.equals("BRK") )
         	{
         		BRK();
+        	}
+        	else if ( opcode.equals("bvc") || opcode.equals("BVC") )
+        	{
+        		BVC( operand );
+        	}
+        	else if ( opcode.equals("bvs") || opcode.equals("BVS") )
+        	{
+        		BVS( operand );
         	}
         	else if ( opcode.equals("clc") || opcode.equals("CLC") )
         	{
@@ -407,15 +431,13 @@ public class Processor
         P.setBit( P_N, flags.getBit( P_N ) );
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
-    
-    //BCC, BCS, BIT, BMI, BNE, BVC, BVS to come
-    
+       
     /**
-     * Branch on Equal
+     * Branch on Carry Clear
      */
-    private void BEQ( Byte src1 )
+    private void BCC( Byte src1 )
     {
-    	if ( P.getBit( P_N ) == false && P.getBit( P_Z ) == true && P.getBit( P_C ) == true )
+    	if ( P.getBit( P_C ) == false )
     	{
     		// Jump
     		PC.setVal( src1.getVal() - 1 );
@@ -423,11 +445,61 @@ public class Processor
     }
     
     /**
-     * Branch on Greater Than
+     * Branch on Carry Set
+     */
+    private void BCS( Byte src1 )
+    {
+    	if ( P.getBit( P_C ) == true )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
+    
+    /**
+     * Branch on Equal
+     */
+    private void BEQ( Byte src1 )
+    {
+    	if ( P.getBit( P_Z ) == true )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
+    
+    // BIT to come
+    
+    /**
+     * Branch on Minus (Less Than)
+     */
+    private void BMI( Byte src1 )
+    {
+    	if ( P.getBit( P_N ) == true )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
+    
+    /**
+     * Branch on Not Equal
+     */
+    private void BNE( Byte src1 )
+    {
+    	if ( P.getBit( P_Z ) == false )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
+    
+    /**
+     * Branch on Plus (Greater Than)
      */
     private void BPL( Byte src1 )
     {
-    	if ( P.getBit( P_N ) == true && P.getBit( P_Z ) == false && P.getBit( P_C ) == false )
+    	if ( P.getBit( P_Z ) == false && P.getBit( P_C ) == true )
     	{
     		// Jump
     		PC.setVal( src1.getVal() - 1 );
@@ -447,6 +519,30 @@ public class Processor
         // Sets interrupt flags.
         P.setBit( P_B , true );
         P.setBit( P_I , true );      
+    }
+    
+    /**
+     * Branch on Overflow Clear
+     */
+    private void BVC( Byte src1 )
+    {
+    	if ( P.getBit( P_V ) == false )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
+    }
+    
+    /**
+     * Branch on Overflow Set
+     */
+    private void BVS( Byte src1 )
+    {
+    	if ( P.getBit( P_V ) == true )
+    	{
+    		// Jump
+    		PC.setVal( src1.getVal() - 1 );
+    	}
     }
     
     /**
