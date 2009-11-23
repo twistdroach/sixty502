@@ -10,17 +10,18 @@
 public class Processor
 {
     /* Status bit positions */
-    public static final int P_N = 0;
-    public static final int P_V = 1;
-    public static final int P_1 = 2;
-    public static final int P_B = 3;
-    public static final int P_D = 4;
-    public static final int P_I = 5;
-    public static final int P_Z = 6;
-    public static final int P_C = 7;
+    public static final int P_N = 7;
+    public static final int P_V = 6;
+    public static final int P_1 = 5;
+    public static final int P_B = 4;
+    public static final int P_D = 3;
+    public static final int P_I = 2;
+    public static final int P_Z = 1;
+    public static final int P_C = 0;
     /* Stack location */
     private static final Word stackOffset = new Word( "$0100" );
     /* Registers */   		      //                   0 1 2 3 4 5 6 7
+    /* Registers */   		      //                   7 6 5 4 3 2 1 0
     public static Register P;     // Status register - N|V|1|B|D|I|Z|C
     public static Register A;     // Accumulator
     public static Register X;     // Index register
@@ -74,6 +75,9 @@ public class Processor
     	System.out.println( "--------------------------------------------------" );
     	System.out.println( "6502 Emulator by Chris Pable and Chris Erickson" );
     	System.out.println( "--------------------------------------------------" );
+    	System.out.println( "-------------------------------------------------" );
+    	System.out.println( " 6502 Emulator by Chris Pable and Chris Erickson" );
+    	System.out.println( "-------------------------------------------------" );
         // Read in our program
         theProgram = new Program( programName );
         
@@ -108,6 +112,10 @@ public class Processor
         	else if ( opcode.equals("beq") || opcode.equals("BEQ") )
         	{
         		BEQ( operand );
+        	}
+        	else if ( opcode.equals("bit") || opcode.equals("BIT") )
+        	{
+        		BIT( operand );
         	}
         	else if ( opcode.equals("bmi") || opcode.equals("BMI") )
         	{
@@ -324,13 +332,13 @@ public class Processor
      */
     private void printAllRegisters()
     {
-    	System.out.println( "--------------------------------------------------" );
+    	System.out.println( "-------------------------------------------------" );
         System.out.println( "Status: " + P.getValBin() + " " + P.getValHex() );
         System.out.println( "A:      " + A.getValBin() + " " + A.getValHex() );
         System.out.println( "X:      " + X.getValBin() + " " + X.getValHex() );
         System.out.println( "Y:      " + Y.getValBin() + " " + Y.getValHex() );
         System.out.println( "PC:     " + PC.getValHex() );
-        System.out.println( "--------------------------------------------------" );
+        System.out.println( "-------------------------------------------------" );
     }
     
     /* OPCODE IMPLEMENTATION */
@@ -442,6 +450,23 @@ public class Processor
     		// Jump
     		PC.setVal( src1.getVal() - 1 );
     	}
+    }
+
+    /**
+     * Test Bits
+     * 
+     * Used Flags:
+     *   N - Bit 7 of src1.
+     *   V - Bit 6 of src1.
+     *   Z - 1 if result of src1 AND accumulator is zero.
+     */
+    private void BIT( Byte src1 )
+    {
+    	P.setBit( P_N, src1.getBit( P_N ) );
+    	P.setBit( P_V, src1.getBit( P_V ) );
+    	
+    	if ( ( src1.getVal() & A.getVal() ) == 0 )
+    		P.setBit( P_Z, true );
     }
     
     /**

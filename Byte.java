@@ -83,9 +83,9 @@ public class Byte
      * 
      * @param newVal New value to store in the Byte.
      * @return A Byte with bits corresponding to these flags:
-     *  0 - Value is negative.
-     *  1 - Value caused overflow.
-     *  6 - Value is zero.
+     *  7 - Value is negative.
+     *  6 - Value caused overflow.
+     *  1 - Value is zero.
      */
     public Byte setVal( int newVal )
     {
