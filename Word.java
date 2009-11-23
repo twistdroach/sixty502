@@ -102,7 +102,7 @@ public class Word
             // Set the values, keeping little endianness in mind
             low.setVal( "$" + newVal.substring( 0, 2 ) );
             // If not just a byte, get the rest too
-            if ( newVal.length() == 16 )
+            if ( newVal.length() == 4 )
             {
             	high.setVal( "$" + newVal.substring( 3, 5 ) );
             }

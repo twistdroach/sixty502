@@ -72,9 +72,6 @@ public class Processor
     private void start( String programName )
     {       
     	// Print some information
-    	System.out.println( "--------------------------------------------------" );
-    	System.out.println( "6502 Emulator by Chris Pable and Chris Erickson" );
-    	System.out.println( "--------------------------------------------------" );
     	System.out.println( "-------------------------------------------------" );
     	System.out.println( " 6502 Emulator by Chris Pable and Chris Erickson" );
     	System.out.println( "-------------------------------------------------" );
