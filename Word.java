@@ -87,8 +87,7 @@ public class Word
             // Hack off the '%'
             newVal = newVal.substring( 1, newVal.length() );
             // Set the values, keeping little endianness in mind
-            System.out.println( newVal.substring( 0, 7 ) );
-            low.setVal( "%" + newVal.substring( 0, 7 ) );
+            low.setVal( "%" + newVal.substring( 0, 8 ) );
             // If not just a byte, get the rest too
             if ( newVal.length() == 16 )
             {
@@ -104,7 +103,7 @@ public class Word
             // If not just a byte, get the rest too
             if ( newVal.length() == 4 )
             {
-            	high.setVal( "$" + newVal.substring( 3, 5 ) );
+            	high.setVal( "$" + newVal.substring( 2, 4 ) );
             }
         }
         else
