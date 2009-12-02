@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Processor.java
  * Emulates the NES' main processor
@@ -19,8 +21,7 @@ public class Processor
     public static final int P_Z = 1;
     public static final int P_C = 0;
     /* Stack location */
-    private static final Word stackOffset = new Word( "$0100" );
-    /* Registers */   		      //                   0 1 2 3 4 5 6 7
+    private static final int stackOffset = 0x0100;
     /* Registers */   		      //                   7 6 5 4 3 2 1 0
     public static Register P;     // Status register - N|V|1|B|D|I|Z|C
     public static Register A;     // Accumulator
@@ -29,7 +30,6 @@ public class Processor
     public static Register SP;    // Stack Pointer
     public static PC PC;          // Program counter
     /* Program & Memory */
-    private Program theProgram;
 	private Memory theMemory;
     
     /**
@@ -69,259 +69,266 @@ public class Processor
     /**
      * Index the program and start the processor.
      */
-    private void start( String programName )
-    {       
+    private void start( String filename )
+    {
     	// Print some information
     	System.out.println( "-------------------------------------------------" );
     	System.out.println( " 6502 Emulator by Chris Pable and Chris Erickson" );
     	System.out.println( "-------------------------------------------------" );
-        // Read in our program
-        theProgram = new Program( programName );
-        
-        // Execute the program
-        while ( PC.getVal() < theProgram.numInstructions() )
-        {
-        	Instruction curInst = theProgram.getInstruction( PC.getVal() );
-        	// Decode the operand
-        	Byte operand = Parser.getReferenced( curInst.getOperand(), curInst.getOffset() );
-        	// Decode the opcode
-        	String opcode = curInst.getOpcode();
-        	if ( opcode.equals("adc") || opcode.equals("ADC") )
-        	{
-        		ADC( operand );
-        	}
-        	else if ( opcode.equals("and") || opcode.equals("AND") )
-        	{
-        		AND( operand );
-        	}
-        	else if ( opcode.equals("asl") || opcode.equals("ASL") )
-        	{
-        		ASL( operand );
-        	}
-        	else if ( opcode.equals("bcc") || opcode.equals("BCC") )
-        	{
-        		BCC( operand );
-        	}
-        	else if ( opcode.equals("bcs") || opcode.equals("BCS") )
-        	{
-        		BCS( operand );
-        	}
-        	else if ( opcode.equals("beq") || opcode.equals("BEQ") )
-        	{
-        		BEQ( operand );
-        	}
-        	else if ( opcode.equals("bit") || opcode.equals("BIT") )
-        	{
-        		BIT( operand );
-        	}
-        	else if ( opcode.equals("bmi") || opcode.equals("BMI") )
-        	{
-        		BMI( operand );
-        	}
-        	else if ( opcode.equals("bne") || opcode.equals("BNE") )
-        	{
-        		BNE( operand );
-        	}
-        	else if ( opcode.equals("bpl") || opcode.equals("BPL") )
-        	{
-        		BPL( operand );
-        	}
-        	else if ( opcode.equals("brk") || opcode.equals("BRK") )
-        	{
-        		BRK();
-        	}
-        	else if ( opcode.equals("bvc") || opcode.equals("BVC") )
-        	{
-        		BVC( operand );
-        	}
-        	else if ( opcode.equals("bvs") || opcode.equals("BVS") )
-        	{
-        		BVS( operand );
-        	}
-        	else if ( opcode.equals("clc") || opcode.equals("CLC") )
-        	{
-        		CLC();
-        	}
-        	else if ( opcode.equals("cld") || opcode.equals("CLD") )
-        	{
-        		CLD();
-        	}
-        	else if ( opcode.equals("cli") || opcode.equals("CLI") )
-        	{
-        		CLI();
-        	}
-        	else if ( opcode.equals("clv") || opcode.equals("CLV") )
-        	{
-        		CLV();
-        	}
-        	else if ( opcode.equals("cmp") || opcode.equals("CMP") )
-        	{
-        		CMP( operand );
-        	}
-        	else if ( opcode.equals("cpx") || opcode.equals("CPX") )
-        	{
-        		CPX( operand );
-        	}
-        	else if ( opcode.equals("cpy") || opcode.equals("CPY") )
-        	{
-        		CPY( operand );
-        	}
-        	else if ( opcode.equals("dec") || opcode.equals("DEC") )
-        	{
-        		DEC( operand );
-        	}
-        	else if ( opcode.equals("dex") || opcode.equals("DEX") )
-        	{
-        		DEX();
-        	}
-        	else if ( opcode.equals("dey") || opcode.equals("DEY") )
-        	{
-        		DEY();
-        	}
-        	else if ( opcode.equals("eor") || opcode.equals("EOR") )
-        	{
-        		EOR( operand );
-        	}
-        	else if ( opcode.equals("inc") || opcode.equals("INC") )
-        	{
-        		INC( operand );
-        	}
-        	else if ( opcode.equals("inx") || opcode.equals("INX") )
-        	{
-        		INX();
-        	}
-        	else if ( opcode.equals("iny") || opcode.equals("INY") )
-        	{
-        		INY();
-        	}
-        	else if ( opcode.equals("jmp") || opcode.equals("JMP") )
-        	{
-        		JMP( operand );
-        	}
-        	else if ( opcode.equals("jsr") || opcode.equals("JSR") )
-        	{
-        		JSR( operand );
-        	}
-        	else if ( opcode.equals("lda") || opcode.equals("LDA") )
-        	{
-        		LDA( operand );
-        	}
-        	else if ( opcode.equals("ldx") || opcode.equals("LDX") )
-        	{
-        		LDX( operand );
-        	}
-        	else if ( opcode.equals("ldy") || opcode.equals("LDY") )
-        	{
-        		LDY( operand );
-        	}
-        	else if ( opcode.equals("lsr") || opcode.equals("LSR") )
-        	{
-        		LSR( operand );
-        	}
-        	else if ( opcode.equals("nop") || opcode.equals("NOP") )
-        	{
-        		NOP();
-        	}
-        	else if ( opcode.equals("ora") || opcode.equals("ORA") )
-        	{
-        		ORA( operand );
-        	}
-        	else if ( opcode.equals("pha") || opcode.equals("PHA") )
-        	{
-        		PHA();
-        	}
-        	else if ( opcode.equals("php") || opcode.equals("PHP") )
-        	{
-        		PHP();
-        	}
-        	else if ( opcode.equals("pla") || opcode.equals("PLA") )
-        	{
-        		PLA();
-        	}
-        	else if ( opcode.equals("plp") || opcode.equals("PLP") )
-        	{
-        		PLP();
-        	}
-        	else if ( opcode.equals("rol") || opcode.equals("ROL") )
-        	{
-        		ROL( operand );
-        	}
-        	else if ( opcode.equals("ror") || opcode.equals("ROR") )
-        	{
-        		ROR( operand );
-        	}
-        	else if ( opcode.equals("rti") || opcode.equals("RTI") )
-        	{
-        		RTI();
-        	}
-        	else if ( opcode.equals("rts") || opcode.equals("RTS") )
-        	{
-        		RTS();
-        	}
-        	else if ( opcode.equals("sbc") || opcode.equals("SBC") )
-        	{
-        		SBC( operand );
-        	}
-        	else if ( opcode.equals("sec") || opcode.equals("SEC") )
-        	{
-        		SEC();
-        	}
-        	else if ( opcode.equals("sed") || opcode.equals("SED") )
-        	{
-        		SED();
-        	}
-        	else if ( opcode.equals("sei") || opcode.equals("SEI") )
-        	{
-        		SEI();
-        	}
-        	else if ( opcode.equals("sta") || opcode.equals("STA") )
-        	{
-        		STA( operand );
-        	}
-        	else if ( opcode.equals("stx") || opcode.equals("STX") )
-        	{
-        		STX( operand );
-        	}
-        	else if ( opcode.equals("sty") || opcode.equals("STY") )
-        	{
-        		STY( operand );
-        	}
-        	else if ( opcode.equals("tax") || opcode.equals("TAX") )
-        	{
-        		TAX();
-        	}
-        	else if ( opcode.equals("tay") || opcode.equals("TAY") )
-        	{
-        		TAY();
-        	}
-        	else if ( opcode.equals("tsx") || opcode.equals("TSX") )
-        	{
-        		TSX();
-        	}
-        	else if ( opcode.equals("txa") || opcode.equals("TXA") )
-        	{
-        		TXA();
-        	}
-        	else if ( opcode.equals("txs") || opcode.equals("TXS") )
-        	{
-        		TXS();
-        	}
-        	else if ( opcode.equals("tya") || opcode.equals("TYA") )
-        	{
-        		TYA();
-        	}
-        	else
-        	{
-        		System.out.println( "Unsupported opcode: " + opcode );
-        	}
-        	
-        	// Print the actual processed opcode
-        	System.out.println( "Instruction: " + curInst.getOpcode() + " " + curInst.getOperand() + " " +  curInst.getOffset() );
-        	// Print status of the processor
-        	printAllRegisters();
-        	// Increment the PC
-        	PC.setVal( PC.getVal() + 1 );
-        }
+
+    	// Parse the input file
+    	ArrayList<Integer> program = new ArrayList<Integer>();
+    	Parser asmParser = new AssemblyParser();
+    	asmParser.parseFile( program, filename );
+    	//System.out.println( "Value: " + program.get( 0 ) );
+    	
+//    	// Read in our program
+//        theProgram = new Program( programName );
+//        
+//        // Execute the program
+//        while ( PC.getVal() < theProgram.numInstructions() )
+//        {
+//        	Instruction curInst = theProgram.getInstruction( PC.getVal() );
+//        	// Decode the operand
+//        	Byte operand = Parser.getReferenced( curInst.getOperand(), curInst.getOffset() );
+//        	// Decode the opcode
+//        	String opcode = curInst.getOpcode();
+//        	if ( opcode.equals("adc") || opcode.equals("ADC") )
+//        	{
+//        		ADC( operand );
+//        	}
+//        	else if ( opcode.equals("and") || opcode.equals("AND") )
+//        	{
+//        		AND( operand );
+//        	}
+//        	else if ( opcode.equals("asl") || opcode.equals("ASL") )
+//        	{
+//        		ASL( operand );
+//        	}
+//        	else if ( opcode.equals("bcc") || opcode.equals("BCC") )
+//        	{
+//        		BCC( operand );
+//        	}
+//        	else if ( opcode.equals("bcs") || opcode.equals("BCS") )
+//        	{
+//        		BCS( operand );
+//        	}
+//        	else if ( opcode.equals("beq") || opcode.equals("BEQ") )
+//        	{
+//        		BEQ( operand );
+//        	}
+//        	else if ( opcode.equals("bit") || opcode.equals("BIT") )
+//        	{
+//        		BIT( operand );
+//        	}
+//        	else if ( opcode.equals("bmi") || opcode.equals("BMI") )
+//        	{
+//        		BMI( operand );
+//        	}
+//        	else if ( opcode.equals("bne") || opcode.equals("BNE") )
+//        	{
+//        		BNE( operand );
+//        	}
+//        	else if ( opcode.equals("bpl") || opcode.equals("BPL") )
+//        	{
+//        		BPL( operand );
+//        	}
+//        	else if ( opcode.equals("brk") || opcode.equals("BRK") )
+//        	{
+//        		BRK();
+//        	}
+//        	else if ( opcode.equals("bvc") || opcode.equals("BVC") )
+//        	{
+//        		BVC( operand );
+//        	}
+//        	else if ( opcode.equals("bvs") || opcode.equals("BVS") )
+//        	{
+//        		BVS( operand );
+//        	}
+//        	else if ( opcode.equals("clc") || opcode.equals("CLC") )
+//        	{
+//        		CLC();
+//        	}
+//        	else if ( opcode.equals("cld") || opcode.equals("CLD") )
+//        	{
+//        		CLD();
+//        	}
+//        	else if ( opcode.equals("cli") || opcode.equals("CLI") )
+//        	{
+//        		CLI();
+//        	}
+//        	else if ( opcode.equals("clv") || opcode.equals("CLV") )
+//        	{
+//        		CLV();
+//        	}
+//        	else if ( opcode.equals("cmp") || opcode.equals("CMP") )
+//        	{
+//        		CMP( operand );
+//        	}
+//        	else if ( opcode.equals("cpx") || opcode.equals("CPX") )
+//        	{
+//        		CPX( operand );
+//        	}
+//        	else if ( opcode.equals("cpy") || opcode.equals("CPY") )
+//        	{
+//        		CPY( operand );
+//        	}
+//        	else if ( opcode.equals("dec") || opcode.equals("DEC") )
+//        	{
+//        		DEC( operand );
+//        	}
+//        	else if ( opcode.equals("dex") || opcode.equals("DEX") )
+//        	{
+//        		DEX();
+//        	}
+//        	else if ( opcode.equals("dey") || opcode.equals("DEY") )
+//        	{
+//        		DEY();
+//        	}
+//        	else if ( opcode.equals("eor") || opcode.equals("EOR") )
+//        	{
+//        		EOR( operand );
+//        	}
+//        	else if ( opcode.equals("inc") || opcode.equals("INC") )
+//        	{
+//        		INC( operand );
+//        	}
+//        	else if ( opcode.equals("inx") || opcode.equals("INX") )
+//        	{
+//        		INX();
+//        	}
+//        	else if ( opcode.equals("iny") || opcode.equals("INY") )
+//        	{
+//        		INY();
+//        	}
+//        	else if ( opcode.equals("jmp") || opcode.equals("JMP") )
+//        	{
+//        		JMP( operand );
+//        	}
+//        	else if ( opcode.equals("jsr") || opcode.equals("JSR") )
+//        	{
+//        		JSR( operand );
+//        	}
+//        	else if ( opcode.equals("lda") || opcode.equals("LDA") )
+//        	{
+//        		LDA( operand );
+//        	}
+//        	else if ( opcode.equals("ldx") || opcode.equals("LDX") )
+//        	{
+//        		LDX( operand );
+//        	}
+//        	else if ( opcode.equals("ldy") || opcode.equals("LDY") )
+//        	{
+//        		LDY( operand );
+//        	}
+//        	else if ( opcode.equals("lsr") || opcode.equals("LSR") )
+//        	{
+//        		LSR( operand );
+//        	}
+//        	else if ( opcode.equals("nop") || opcode.equals("NOP") )
+//        	{
+//        		NOP();
+//        	}
+//        	else if ( opcode.equals("ora") || opcode.equals("ORA") )
+//        	{
+//        		ORA( operand );
+//        	}
+//        	else if ( opcode.equals("pha") || opcode.equals("PHA") )
+//        	{
+//        		PHA();
+//        	}
+//        	else if ( opcode.equals("php") || opcode.equals("PHP") )
+//        	{
+//        		PHP();
+//        	}
+//        	else if ( opcode.equals("pla") || opcode.equals("PLA") )
+//        	{
+//        		PLA();
+//        	}
+//        	else if ( opcode.equals("plp") || opcode.equals("PLP") )
+//        	{
+//        		PLP();
+//        	}
+//        	else if ( opcode.equals("rol") || opcode.equals("ROL") )
+//        	{
+//        		ROL( operand );
+//        	}
+//        	else if ( opcode.equals("ror") || opcode.equals("ROR") )
+//        	{
+//        		ROR( operand );
+//        	}
+//        	else if ( opcode.equals("rti") || opcode.equals("RTI") )
+//        	{
+//        		RTI();
+//        	}
+//        	else if ( opcode.equals("rts") || opcode.equals("RTS") )
+//        	{
+//        		RTS();
+//        	}
+//        	else if ( opcode.equals("sbc") || opcode.equals("SBC") )
+//        	{
+//        		SBC( operand );
+//        	}
+//        	else if ( opcode.equals("sec") || opcode.equals("SEC") )
+//        	{
+//        		SEC();
+//        	}
+//        	else if ( opcode.equals("sed") || opcode.equals("SED") )
+//        	{
+//        		SED();
+//        	}
+//        	else if ( opcode.equals("sei") || opcode.equals("SEI") )
+//        	{
+//        		SEI();
+//        	}
+//        	else if ( opcode.equals("sta") || opcode.equals("STA") )
+//        	{
+//        		STA( operand );
+//        	}
+//        	else if ( opcode.equals("stx") || opcode.equals("STX") )
+//        	{
+//        		STX( operand );
+//        	}
+//        	else if ( opcode.equals("sty") || opcode.equals("STY") )
+//        	{
+//        		STY( operand );
+//        	}
+//        	else if ( opcode.equals("tax") || opcode.equals("TAX") )
+//        	{
+//        		TAX();
+//        	}
+//        	else if ( opcode.equals("tay") || opcode.equals("TAY") )
+//        	{
+//        		TAY();
+//        	}
+//        	else if ( opcode.equals("tsx") || opcode.equals("TSX") )
+//        	{
+//        		TSX();
+//        	}
+//        	else if ( opcode.equals("txa") || opcode.equals("TXA") )
+//        	{
+//        		TXA();
+//        	}
+//        	else if ( opcode.equals("txs") || opcode.equals("TXS") )
+//        	{
+//        		TXS();
+//        	}
+//        	else if ( opcode.equals("tya") || opcode.equals("TYA") )
+//        	{
+//        		TYA();
+//        	}
+//        	else
+//        	{
+//        		System.out.println( "Unsupported opcode: " + opcode );
+//        	}
+//        	
+//        	// Print the actual processed opcode
+//        	//System.out.println( "Instruction: " + curInst.getOpcode() + " " + curInst.getOperand() + " " +  curInst.getOffset() );
+//        	// Print status of the processor
+//        	printAllRegisters();
+//        	// Increment the PC
+//        	PC.setVal( PC.getVal() + 1 );
+//        }
     }
     
     /**

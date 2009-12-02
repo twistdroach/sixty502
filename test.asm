@@ -124,10 +124,10 @@ drawloop:
 rowshift:
   tax
   tya
-  asl
+  asl A
   tay
   txa
-  asl
+  asl A
   cmp width
   bne rowshift
   ; Done multiplying, result in y
@@ -147,7 +147,7 @@ rowshift:
   clc
   adc ypos
   ; Get appropriate value from table
-  asl
+  asl A
   tax
   lda ylookup, x
   sta $50
@@ -198,7 +198,7 @@ ypos: dcb 0
 clearLine:
   lda clsrow
   ; Get appropriate value from table
-  asl
+  asl A
   tax
   lda ylookup, x
   sta $c0

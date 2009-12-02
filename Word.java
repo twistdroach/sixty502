@@ -104,7 +104,7 @@ public class Word
             // If not just a byte, get the rest too
             if ( newVal.length() == 4 )
             {
-            	high.setVal( "$" + newVal.substring( 3, 5 ) );
+            	high.setVal( "$" + newVal.substring( 3, 4 ) );
             }
         }
         else

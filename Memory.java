@@ -7,6 +7,8 @@
 
 public class Memory
 {
+	public static final int programStart = 0x0400; // Location in memory where programs are stored
+	
     /* The single instance */
 	private static Memory instance = null;
     private Byte[] theMemory;
