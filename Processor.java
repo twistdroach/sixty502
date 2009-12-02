@@ -458,7 +458,7 @@ public class Processor
 				case 0xBA: // Implied
 					System.out.println( "TSX $" + Integer.toHexString( X )  );
 					X = SP;
-					break;
+					break; 
 
 
 
