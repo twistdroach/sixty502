@@ -348,9 +348,6 @@ public class AssemblyParser implements Parser
 			System.exit( 0 );
 		}
 		
-		System.out.println( "Indexed labels:" );
-		System.out.println( indexedLabels );
-		
 		// Third pass: Replace labels and operands with their respective value in the form of bytes
 		for ( int i = 0; i < opcodes.size(); ++i )
 		{
@@ -391,7 +388,7 @@ public class AssemblyParser implements Parser
 					if ( indexedLabels.containsKey( operand ) )
 					{
 						val = indexedLabels.get( operand );
-						val = val & 0xFF; // Mask off the low byte
+						val &= 0xFF; // Mask off the low byte
 						binary.add( val );
 					}
 					else
@@ -412,8 +409,8 @@ public class AssemblyParser implements Parser
 					if ( indexedLabels.containsKey( operand ) )
 					{
 						val = indexedLabels.get( operand );
-						val = val >> 8;   // Shift off the low byte
-						val = val & 0xFF; // Mask
+						val >>= 8;   // Shift off the low byte
+						val &= 0xFF; // Mask
 						binary.add( val );
 					}
 					else
@@ -434,25 +431,16 @@ public class AssemblyParser implements Parser
 					operand = operand.substring( operand.indexOf( '*' ) + 2 );
 					val = Integer.parseInt( operand );
 					if ( sign == '-' )
-						val = val ^ 0x80; // Mark the negative bit
-					binary.add( val );
+						val = -val;
+					binary.add( val & 0xFF );
 					break;
 				case 10: // Relative - Label
 					if ( indexedLabels.containsKey( operand ) )
 					{
 						// Make the absolute label relative
 						val = indexedLabels.get( operand );
-						if ( val > memoryAddress[i] )
-						{
-							val = val - memoryAddress[i];
-						}
-						else
-						{
-							val = memoryAddress[i] - val;
-							val = val ^ 0x80; // Mark the negative bit
-						}
-						val = val & 0xFF;
-						binary.add( val );
+						val -= memoryAddress[i];
+						binary.add( val & 0xFF );
 					}
 					else
 					{
@@ -466,7 +454,7 @@ public class AssemblyParser implements Parser
 					// Absolute, pass low byte then high
 					val = Integer.parseInt( operand, 16 );
 					binary.add( val & 0xFF );
-					val = val >> 8;
+					val >>= 8;
 					binary.add( val & 0xFF );
 					break;
 				case 14: // Indirect - Address
@@ -474,7 +462,7 @@ public class AssemblyParser implements Parser
 					// Absolute, pass low byte then high
 					val = Integer.parseInt( operand, 16 );
 					binary.add( val & 0xFF );
-					val = val >> 8;
+					val >>= 8;
 					binary.add( val & 0xFF );
 					break;
 				case 15: // Indirect - Label
@@ -485,7 +473,7 @@ public class AssemblyParser implements Parser
 						// This is absolute, pass low byte then high
 						val = indexedLabels.get( operand );
 						binary.add( val & 0xFF ); // Pass low byte
-						val = val >> 8;
+						val >>= 8;
 						binary.add( val & 0xFF ); // Pass high byte
 					}
 					else
@@ -534,7 +522,7 @@ public class AssemblyParser implements Parser
 						// This is absolute, pass low byte then high
 						val = indexedLabels.get( operand );
 						binary.add( val & 0xFF ); // Pass low byte
-						val = val >> 8;
+						val >>= 8;
 						binary.add( val & 0xFF ); // Pass high byte
 					}
 					else
@@ -567,7 +555,7 @@ public class AssemblyParser implements Parser
 						// This is absolute, pass low byte then high
 						val = indexedLabels.get( operand );
 						binary.add( val & 0xFF ); // Pass low byte
-						val = val >> 8;
+						val >>= 8;
 						binary.add( val & 0xFF ); // Pass high byte
 					}
 					else
@@ -581,15 +569,16 @@ public class AssemblyParser implements Parser
 					break;
 			}
 		}
+
+		// Assembly complete!
 		
-		System.out.println( "Assembled: ");
-		for ( int i = 0; i < opcodes.size(); ++i )
-		{
-			System.out.print( memoryAddress[i] + ":" + addressmodes.get( i ) + ": " );
-			for ( int j = 0; j < InstructionProperties.LENGTH.get( opcodes.get( i ) ); ++j )
-				System.out.print( Integer.toHexString( binary.get( memoryAddress[i]-memoryAddress[0] + j ) ) + " " );
-			System.out.println();
-		}
-		System.out.println( memoryAddress[1] );
+//		System.out.println( "Assembled: ");
+//		for ( int i = 0; i < opcodes.size(); ++i )
+//		{
+//			System.out.print( Integer.toHexString(memoryAddress[i]) + ":" + addressmodes.get( i ) + ": " );
+//			for ( int j = 0; j < InstructionProperties.LENGTH.get( opcodes.get( i ) ); ++j )
+//				System.out.print( Integer.toHexString( binary.get( memoryAddress[i]-memoryAddress[0] + j ) ) + " " );
+//			System.out.println();
+//		}
 	}
 }

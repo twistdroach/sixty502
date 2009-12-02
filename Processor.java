@@ -20,33 +20,27 @@ public class Processor
     public static final int P_I = 2;
     public static final int P_Z = 1;
     public static final int P_C = 0;
-    /* Stack location */
-    private static final int stackOffset = 0x0100;
-    /* Registers */   		      //                   7 6 5 4 3 2 1 0
-    public static Register P;     // Status register - N|V|1|B|D|I|Z|C
-    public static Register A;     // Accumulator
-    public static Register X;     // Index register
-    public static Register Y;     // Index register
-    public static Register SP;    // Stack Pointer
-    public static PC PC;          // Program counter
-    /* Program & Memory */
-	private Memory theMemory;
+
+    /* Registers */   		//                   7 6 5 4 3 2 1 0
+    public static int P;    // Status register - N|V|1|B|D|I|Z|C
+    public static int A;    // Accumulator
+    public static int X;    // Index register
+    public static int Y;    // Index register
+    public static int SP;   // Stack Pointer
+    public static int PC;	// Program counter
     
     /**
      * Creates an instance of a processor.
      */
     public Processor()
     {
-        // Create registers
-        P = new Register();
-        A = new Register();
-        X = new Register();
-        Y = new Register();
-        SP = new Register();
-        PC = new PC();
-        
-        // Get an instance of the memory
-        theMemory = Memory.getInstance();
+        // Initialize the registers
+        P = 1 << 5; // Set 1 to 1
+        A = 0x00;
+        X = 0x00;
+        Y = 0x00;
+        SP = Memory.stackStart;
+        PC = 0x0000;
     }
 
     /**
@@ -55,14 +49,18 @@ public class Processor
      * @param args Command line arguments
      */
     public static void main( String[] args )
-    {
-        // Create a processor!
-        Processor NES = new Processor();
-        
-        // Run a program!
+    {      
+        // Run a program
         if ( args.length == 1 )
         {
+            // Initialize the processor
+            Processor NES = new Processor();
             NES.start( args[0] );
+        }
+        else
+        {
+        	System.out.println( "You must specify a program." );
+        	System.out.println( "    i.e. java -jar sixty502 file.asm" );
         }
     }
 
@@ -76,374 +74,288 @@ public class Processor
     	System.out.println( " 6502 Emulator by Chris Pable and Chris Erickson" );
     	System.out.println( "-------------------------------------------------" );
 
+    	System.out.println( "Initial state" );
+    	printAllRegisters();
+    	
     	// Parse the input file
     	ArrayList<Integer> program = new ArrayList<Integer>();
     	Parser asmParser = new AssemblyParser();
     	asmParser.parseFile( program, filename );
-    	//System.out.println( "Value: " + program.get( 0 ) );
-    	
-//    	// Read in our program
-//        theProgram = new Program( programName );
-//        
-//        // Execute the program
-//        while ( PC.getVal() < theProgram.numInstructions() )
-//        {
-//        	Instruction curInst = theProgram.getInstruction( PC.getVal() );
-//        	// Decode the operand
-//        	Byte operand = Parser.getReferenced( curInst.getOperand(), curInst.getOffset() );
-//        	// Decode the opcode
-//        	String opcode = curInst.getOpcode();
-//        	if ( opcode.equals("adc") || opcode.equals("ADC") )
-//        	{
-//        		ADC( operand );
-//        	}
-//        	else if ( opcode.equals("and") || opcode.equals("AND") )
-//        	{
-//        		AND( operand );
-//        	}
-//        	else if ( opcode.equals("asl") || opcode.equals("ASL") )
-//        	{
-//        		ASL( operand );
-//        	}
-//        	else if ( opcode.equals("bcc") || opcode.equals("BCC") )
-//        	{
-//        		BCC( operand );
-//        	}
-//        	else if ( opcode.equals("bcs") || opcode.equals("BCS") )
-//        	{
-//        		BCS( operand );
-//        	}
-//        	else if ( opcode.equals("beq") || opcode.equals("BEQ") )
-//        	{
-//        		BEQ( operand );
-//        	}
-//        	else if ( opcode.equals("bit") || opcode.equals("BIT") )
-//        	{
-//        		BIT( operand );
-//        	}
-//        	else if ( opcode.equals("bmi") || opcode.equals("BMI") )
-//        	{
-//        		BMI( operand );
-//        	}
-//        	else if ( opcode.equals("bne") || opcode.equals("BNE") )
-//        	{
-//        		BNE( operand );
-//        	}
-//        	else if ( opcode.equals("bpl") || opcode.equals("BPL") )
-//        	{
-//        		BPL( operand );
-//        	}
-//        	else if ( opcode.equals("brk") || opcode.equals("BRK") )
-//        	{
-//        		BRK();
-//        	}
-//        	else if ( opcode.equals("bvc") || opcode.equals("BVC") )
-//        	{
-//        		BVC( operand );
-//        	}
-//        	else if ( opcode.equals("bvs") || opcode.equals("BVS") )
-//        	{
-//        		BVS( operand );
-//        	}
-//        	else if ( opcode.equals("clc") || opcode.equals("CLC") )
-//        	{
-//        		CLC();
-//        	}
-//        	else if ( opcode.equals("cld") || opcode.equals("CLD") )
-//        	{
-//        		CLD();
-//        	}
-//        	else if ( opcode.equals("cli") || opcode.equals("CLI") )
-//        	{
-//        		CLI();
-//        	}
-//        	else if ( opcode.equals("clv") || opcode.equals("CLV") )
-//        	{
-//        		CLV();
-//        	}
-//        	else if ( opcode.equals("cmp") || opcode.equals("CMP") )
-//        	{
-//        		CMP( operand );
-//        	}
-//        	else if ( opcode.equals("cpx") || opcode.equals("CPX") )
-//        	{
-//        		CPX( operand );
-//        	}
-//        	else if ( opcode.equals("cpy") || opcode.equals("CPY") )
-//        	{
-//        		CPY( operand );
-//        	}
-//        	else if ( opcode.equals("dec") || opcode.equals("DEC") )
-//        	{
-//        		DEC( operand );
-//        	}
-//        	else if ( opcode.equals("dex") || opcode.equals("DEX") )
-//        	{
-//        		DEX();
-//        	}
-//        	else if ( opcode.equals("dey") || opcode.equals("DEY") )
-//        	{
-//        		DEY();
-//        	}
-//        	else if ( opcode.equals("eor") || opcode.equals("EOR") )
-//        	{
-//        		EOR( operand );
-//        	}
-//        	else if ( opcode.equals("inc") || opcode.equals("INC") )
-//        	{
-//        		INC( operand );
-//        	}
-//        	else if ( opcode.equals("inx") || opcode.equals("INX") )
-//        	{
-//        		INX();
-//        	}
-//        	else if ( opcode.equals("iny") || opcode.equals("INY") )
-//        	{
-//        		INY();
-//        	}
-//        	else if ( opcode.equals("jmp") || opcode.equals("JMP") )
-//        	{
-//        		JMP( operand );
-//        	}
-//        	else if ( opcode.equals("jsr") || opcode.equals("JSR") )
-//        	{
-//        		JSR( operand );
-//        	}
-//        	else if ( opcode.equals("lda") || opcode.equals("LDA") )
-//        	{
-//        		LDA( operand );
-//        	}
-//        	else if ( opcode.equals("ldx") || opcode.equals("LDX") )
-//        	{
-//        		LDX( operand );
-//        	}
-//        	else if ( opcode.equals("ldy") || opcode.equals("LDY") )
-//        	{
-//        		LDY( operand );
-//        	}
-//        	else if ( opcode.equals("lsr") || opcode.equals("LSR") )
-//        	{
-//        		LSR( operand );
-//        	}
-//        	else if ( opcode.equals("nop") || opcode.equals("NOP") )
-//        	{
-//        		NOP();
-//        	}
-//        	else if ( opcode.equals("ora") || opcode.equals("ORA") )
-//        	{
-//        		ORA( operand );
-//        	}
-//        	else if ( opcode.equals("pha") || opcode.equals("PHA") )
-//        	{
-//        		PHA();
-//        	}
-//        	else if ( opcode.equals("php") || opcode.equals("PHP") )
-//        	{
-//        		PHP();
-//        	}
-//        	else if ( opcode.equals("pla") || opcode.equals("PLA") )
-//        	{
-//        		PLA();
-//        	}
-//        	else if ( opcode.equals("plp") || opcode.equals("PLP") )
-//        	{
-//        		PLP();
-//        	}
-//        	else if ( opcode.equals("rol") || opcode.equals("ROL") )
-//        	{
-//        		ROL( operand );
-//        	}
-//        	else if ( opcode.equals("ror") || opcode.equals("ROR") )
-//        	{
-//        		ROR( operand );
-//        	}
-//        	else if ( opcode.equals("rti") || opcode.equals("RTI") )
-//        	{
-//        		RTI();
-//        	}
-//        	else if ( opcode.equals("rts") || opcode.equals("RTS") )
-//        	{
-//        		RTS();
-//        	}
-//        	else if ( opcode.equals("sbc") || opcode.equals("SBC") )
-//        	{
-//        		SBC( operand );
-//        	}
-//        	else if ( opcode.equals("sec") || opcode.equals("SEC") )
-//        	{
-//        		SEC();
-//        	}
-//        	else if ( opcode.equals("sed") || opcode.equals("SED") )
-//        	{
-//        		SED();
-//        	}
-//        	else if ( opcode.equals("sei") || opcode.equals("SEI") )
-//        	{
-//        		SEI();
-//        	}
-//        	else if ( opcode.equals("sta") || opcode.equals("STA") )
-//        	{
-//        		STA( operand );
-//        	}
-//        	else if ( opcode.equals("stx") || opcode.equals("STX") )
-//        	{
-//        		STX( operand );
-//        	}
-//        	else if ( opcode.equals("sty") || opcode.equals("STY") )
-//        	{
-//        		STY( operand );
-//        	}
-//        	else if ( opcode.equals("tax") || opcode.equals("TAX") )
-//        	{
-//        		TAX();
-//        	}
-//        	else if ( opcode.equals("tay") || opcode.equals("TAY") )
-//        	{
-//        		TAY();
-//        	}
-//        	else if ( opcode.equals("tsx") || opcode.equals("TSX") )
-//        	{
-//        		TSX();
-//        	}
-//        	else if ( opcode.equals("txa") || opcode.equals("TXA") )
-//        	{
-//        		TXA();
-//        	}
-//        	else if ( opcode.equals("txs") || opcode.equals("TXS") )
-//        	{
-//        		TXS();
-//        	}
-//        	else if ( opcode.equals("tya") || opcode.equals("TYA") )
-//        	{
-//        		TYA();
-//        	}
-//        	else
-//        	{
-//        		System.out.println( "Unsupported opcode: " + opcode );
-//        	}
-//        	
-//        	// Print the actual processed opcode
-//        	//System.out.println( "Instruction: " + curInst.getOpcode() + " " + curInst.getOperand() + " " +  curInst.getOffset() );
-//        	// Print status of the processor
-//        	printAllRegisters();
-//        	// Increment the PC
-//        	PC.setVal( PC.getVal() + 1 );
-//        }
-    }
-    
-    /**
-     * Print the value of all registers, used for debugging.
-     */
-    private void printAllRegisters()
-    {
-    	System.out.println( "-------------------------------------------------" );
-        System.out.println( "Status: " + P.getValBin() + " " + P.getValHex() );
-        System.out.println( "A:      " + A.getValBin() + " " + A.getValHex() );
-        System.out.println( "X:      " + X.getValBin() + " " + X.getValHex() );
-        System.out.println( "Y:      " + Y.getValBin() + " " + Y.getValHex() );
-        System.out.println( "PC:     " + PC.getValHex() );
-        System.out.println( "-------------------------------------------------" );
-    }
-    
-    /* OPCODE IMPLEMENTATION */
-    
-    /**
-     * Add with Carry
-     * Adds the accumulator to an input byte and a carry.
-     * Stores result in accumulator.
-     *
-     * Used Flags:
-     *   V - Set if result is outside the range of a signed byte.
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     *   C - If set, adds one to the resulting sum.
-     *
-     * @param src1 Byte to be added to accumulator.
-     */
-    private void ADC( Byte src1 )
-    {
-    	int result = src1.getVal() + A.getVal();
-        
-        // Add the carry if present
-        if ( P.getBit( P_C ) )
-        	result++;
-        
-        // Clear the carry flag
-        P.setBit( P_C, false );
-        
-        // Set result and flags
-        Byte flags = A.setVal( result );
-        P.setBit( P_V, flags.getBit( P_V ) );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
-    
-    /**
-     * Bitwise AND
-     * ANDs the accumulator and an input byte together, bitwise.
-     * Stores result in accumulator.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     *
-     * @param src1 Byte to be ANDed with accumulator.
-     */
-    private void AND( Byte src1 ) 
-    {
-        Byte result = new Byte();
-        
-        // AND bit by bit
-        for ( int i = 0; i < 8; ++i )
-        {
-            if ( A.getBit(i) && src1.getBit(i) )
-            {
-                result.setBit( i, true );
-            }
-            else
-            {
-                result.setBit( i, false );
-            }
-        }
-        
-        // Set result and flags
-        Byte flags = A.setVal( result.getVal() );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
-    
-    /**
-     * Arithmetic Shift Left
-     * Shifts all bits left one position. 0 is shifted in.
-     * Stores result in accumulator.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     *   C - Set if bit shifted off the left end is set. (bit 7)
-     *
-     * @param src1 Byte to be shifted left.
-     */
-    private void ASL( Byte src1 ) 
-    {
-        Byte result = new Byte();
-        
-        // Shift bit 7 into the carry
-        P.setBit( P_C , src1.getBit(7) );
-        // Shift all bits left
-        for ( int i = 7; i > 0; --i )
-        {
-            result.setBit( i, src1.getBit(i-1) );
-        }
-        // Shift in zero
-        result.setBit( 0, false );
 
-        // Set result and flags
-        Byte flags = A.setVal( result.getVal() );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
+    	// Load the program into memory
+    	for ( int i = 0; i < program.size(); ++i )
+    	{
+    		Memory.address[Memory.programStart + i] = program.get( i );
+    	}
+    	
+    	// Run the program
+    	int inst, addr, byte1, hibyte, result, pcmem;
+    	while ( PC  < program.size() )
+    	{
+    		// Temporarily change PC to map to correct spot in memory
+    		PC += Memory.programStart;
+    		
+    		inst = Memory.address[PC++];
+    		switch( inst )
+    		{
+    			// ADC
+    			case 0x69: // Immediate
+    				byte1 = Memory.address[PC++];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x65: // Zero Page
+    				addr = Memory.address[PC++];
+    				byte1 = Memory.address[addr & 0xFF];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x75: // Zero Page, X
+    				addr = Memory.address[PC++];
+    				byte1 = Memory.address[(addr + X) & 0xFF];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x6D: // Absolute
+    				addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x7D: // Absolute, X
+    				addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr + X];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x79: // Absolute, Y
+    				addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr + Y];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x61: // Indirect, X
+    				addr = Memory.address[PC++];
+    				addr = Memory.address[(addr + X) & 0xFF];
+    				byte1 = Memory.address[addr];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x71: // Indirect, Y
+    				addr = Memory.address[PC++];
+    				addr = Memory.address[addr & 0xFF];
+    				byte1 = Memory.address[(addr + Y) & 0xFF];
+    				result = byte1 + A;
+    				if ( getBit( P, P_C ) )
+    					++result;
+    				checkNegative( result );
+    				checkOverflow( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "ADC $" + Integer.toHexString( byte1 ) );
+    				break;
+    			// AND
+    			case 0x29: // Immediate
+    				byte1 = Memory.address[PC++];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x25: // Zero Page
+    				addr = Memory.address[PC++];
+    				byte1 = Memory.address[addr];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + "$" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x35: // Zero Page, X
+    				addr = Memory.address[PC++];
+    				byte1 = Memory.address[addr + X];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + "$" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x2D: // Absolute
+    				addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + "$" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x3D: // Absolute, X
+    				addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr + X];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + "$" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x39: // Absolute, Y
+    				addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr + Y];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x21: // Indirect, X
+    				addr = Memory.address[PC++];
+    				addr = Memory.address[(addr + X) & 0xFF];
+    				byte1 = Memory.address[addr];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + Integer.toHexString( byte1 ) );
+    				break;
+    			case 0x31: // Indirect, Y
+    				addr = Memory.address[PC++];
+    				addr = Memory.address[addr & 0xFF];
+    				byte1 = Memory.address[(addr + Y) & 0xFF];
+    				result = A & byte1;
+    				checkNegative( result );
+    				checkZero( result );
+    				A = result & 0xFF;
+    				System.out.println( "AND $" + Integer.toHexString( byte1 ) );
+    				break;
+    			// ASL
+    			case 0x0A: // Accumulator
+    				byte1 = A;
+					if ( getBit( byte1, 7 ) )
+						P = setBit( P, P_C, true );
+					result = byte1 << 1;
+					checkNegative( result );
+					checkZero( result );
+					A = result & 0xFF;
+					System.out.println( "ASL A" );
+					break;
+				case 0x06: // Zero Page
+					addr = Memory.address[PC++];
+    				byte1 = Memory.address[addr];
+					if ( getBit( byte1, 7 ) )
+						P = setBit( P, P_C, true );
+					result = byte1 << 1;
+					checkNegative( result );
+					checkZero( result );
+					A = result & 0xFF;
+    				System.out.println( "ASL $" + Integer.toHexString( byte1 ) );
+    				break;
+				case 0x16: // Zero Page, X
+					addr = Memory.address[PC++];
+    				byte1 = Memory.address[addr + X];
+					if ( getBit( byte1, 7 ) )
+						P = setBit( P, P_C, true );
+					result = byte1 << 1;
+					checkNegative( result );
+					checkZero( result );
+					A = result & 0xFF;
+    				System.out.println( "ASL $" + Integer.toHexString( byte1 ) );
+    				break;
+				case 0x0E: // Absolute
+					addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr];
+					if ( getBit( byte1, 7 ) )
+						P = setBit( P, P_C, true );
+					result = byte1 << 1;
+					checkNegative( result );
+					checkZero( result );
+					A = result & 0xFF;
+    				System.out.println( "ASL $" + Integer.toHexString( byte1 ) );
+    				break;
+				case 0x1E: // Absolute, X
+					addr = Memory.address[PC++];
+    				addr = ( Memory.address[PC++] << 8 ) | addr;
+    				byte1 = Memory.address[addr + X];
+					if ( getBit( byte1, 7 ) )
+						P = setBit( P, P_C, true );
+					result = byte1 << 1;
+					checkNegative( result );
+					checkZero( result );
+					A = result & 0xFF;
+    				System.out.println( "ASL $" + Integer.toHexString( byte1 ) );
+    				break;
+    			// BCC
+				case 0x90: // Relative
+					byte1 = Memory.address[PC++];
+					System.out.println( Integer.toHexString( byte1 ) );
+					// Make negative if it is
+					if ( getBit( byte1, P_N ) )
+						byte1 |= 0xFFFFFF00;
+					System.out.println( Integer.toHexString( byte1 ) );
+					if ( getBit( P, P_C ) )
+						PC += byte1;
+					System.out.println( "BCC $" + PC );
+					break;
+    			default:
+    				System.out.println( "(ERROR) Unsupported opcode: " + inst );
+    				//System.exit( 0 );
+    				break;
+    		}
+    		// Change it back
+    		PC -= Memory.programStart;
+    		printAllRegisters();
+    	}
     }
-       
+    
     /**
      * Branch on Carry Clear
      */
@@ -1233,7 +1145,7 @@ public class Processor
         
         // Set result and flags
         Byte flags = A.setVal( result );
-        P.setBit( P_V, flags.getBit( P_V ) );
+        checkOverflow( result );
         P.setBit( P_N, flags.getBit( P_N ) );
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
@@ -1397,4 +1309,59 @@ public class Processor
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
+    private void checkOverflow( int binary )
+    {
+    	if ( binary > 127 || binary < -128 )
+    		P = setBit( P, P_V, true );
+    	else
+    		P = setBit( P, P_V, false );
+    }
+    
+    private void checkNegative( int binary )
+    {
+    	if ( ( binary & ( 1 << P_N ) ) != 0 )
+    		P = setBit( P, P_N, true );
+    	else
+    		P = setBit( P, P_N, false );
+    }
+    
+    private void checkZero( int binary )
+    {
+    	if ( binary == 0 )
+    		P = setBit( P, P_Z, true );
+    	else
+    		P = setBit( P, P_Z, false );
+    }
+    
+    private boolean getBit( int binary, int position )
+    {
+    	if ( ( binary & ( 1 << position ) ) != 0 )
+    		return true;
+    	else
+    		return false;
+    }
+    
+    private int setBit( int binary, int position, boolean setIt )
+    {
+    	if ( setIt )
+    		binary |= ( 1 << position );
+    	else
+    		binary &= ~( 1 << position );
+    	
+    	return binary;
+    }
+    
+    /**
+     * Print the value of all registers, used for debugging.
+     */
+    private void printAllRegisters()
+    {
+    	System.out.println( "-------------------------------------------------" );
+        System.out.println( "Status: $" + Integer.toHexString( P ) );
+        System.out.println( "A:      $" + Integer.toHexString( A ) );
+        System.out.println( "X:      $" + Integer.toHexString( X ) );
+        System.out.println( "Y:      $" + Integer.toHexString( Y ) );
+        System.out.println( "PC:     $" + Integer.toHexString( PC ) );
+        System.out.println( "-------------------------------------------------" );
+    }
 }
