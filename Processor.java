@@ -372,6 +372,7 @@ public class Processor
 					break;
 
 
+
     			default:
     				System.out.println( "(ERROR) Unsupported opcode: " + inst );
     				//System.exit( 0 );
@@ -962,69 +963,7 @@ public class Processor
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
 
-    /**
-     * Push Accumulator
-     * Pushes the accumulator onto the stack.
-     */
-    private void PHA()
-    {
-        // Increment the stack pointer
-        SP.setVal( SP.getVal() + 1 );
-        
-        // Determine the address in memory
-        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
-        
-        // Store the accumulator
-        theMemory.getByte( addr ).setVal( A.getVal() );
-    }
-    
-    /**
-     * Pull Accumulator
-     * Pulls the accumulator from the stack.
-     */
-    private void PLA()
-    {
-        // Determine the address in memory
-        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
-        
-        // Decrement the stack pointer
-        SP.setVal( SP.getVal() - 1 );
-        
-        // Store the byte into the accumulator
-        A.setVal( theMemory.getByte( addr ).getVal() );
-    }
-    
-    /**
-     * Push Processor Status
-     * Pushes the status register onto the stack.
-     */
-    private void PHP()
-    {
-        // Increment the stack pointer
-        SP.setVal( SP.getVal() + 1 );
-        
-        // Determine the address in memory
-        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
-        
-        // Store the status register
-        theMemory.getByte( addr ).setVal( P.getVal() );
-    }
-    
-    /**
-     * Pull Processor Status
-     * Pulls the the status register from the stack.
-     */
-    private void PLP()
-    {
-        // Determine the address in memory
-        Word addr = new Word( stackOffset.getVal() + SP.getVal() );
-        
-        // Decrement the stack pointer
-        SP.setVal( SP.getVal() - 1 );
-        
-        // Store the byte into the status register
-        P.setVal( theMemory.getByte( addr ).getVal() );
-    }
+  
     
     /**
      * Rotate Left
