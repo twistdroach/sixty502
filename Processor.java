@@ -370,7 +370,59 @@ public class Processor
 					SP--;
 					System.out.println( "PLP P" );
 					break;
-
+			// INX
+				case 0xE8: // Implied
+					X++;
+					checkNegative( X );
+					checkZero( X );
+					X = X & 0xFF;
+					break;
+			// INY
+				case 0xC8: // Implied
+					Y++;
+					checkNegative( Y );
+					checkZero( Y );
+					Y = Y & 0xFF;
+					break;
+			// INC
+				case 0xE6: // Zero Page
+					addr = Memory.address[PC++];
+    					result = Memory.address[addr];
+					result++;
+					checkNegative( result );
+					checkZero( result );
+					result = result & 0xFF;
+					Memory.address[addr] = result;
+					break;
+				case 0xF6: // Zero Page, X
+					addr = Memory.address[PC++];
+    					result = Memory.address[addr + X];
+					result++;
+					checkNegative( result );
+					checkZero( result );
+					result = result & 0xFF;
+					Memory.address[addr + X] = result;
+					break;
+				case 0xEE: // Absolute
+					addr = Memory.address[PC++];
+					addr = ( Memory.address[PC++] << 8 ) | addr;
+    					result = Memory.address[addr];
+					result++;
+					checkNegative( result );
+					checkZero( result );
+					result = result & 0xFF;
+					Memory.address[addr] = result;
+					break;
+				case 0xFE: // Absolute, X
+					addr = Memory.address[PC++];
+					addr = ( Memory.address[PC++] << 8 ) | addr;
+    					result = Memory.address[addr + X];
+					result++;
+					checkNegative( result );
+					checkZero( result );
+					result = result & 0xFF;
+					Memory.address[addr + X] = result;
+					break;
 
 
     			default:
@@ -751,59 +803,7 @@ public class Processor
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
 
-    /**
-     * Increment Memory
-     * Increases the value stored in the memory by one.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     *
-     * @param src1 Byte to increment.
-     */
-    private void INC( Byte src1 )
-    {
-        // Increment and set flags
-        Byte flags = src1.setVal( src1.getVal() + 1 );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
     
-    /**
-     * Increment X
-     * Increases the value stored in register X by one.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     *
-     * @param src1 Byte to increment.
-     */
-    private void INX()
-    {
-        // Increment and set flags
-        Byte flags = X.setVal( X.getVal() + 1 );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
-    
-    /**
-     * Increment Y
-     * Increases the value stored in register Y by one.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     *
-     * @param dest Byte to increment.
-     */
-    private void INY()
-    {
-        // Increment and set flags
-        Byte flags = Y.setVal( Y.getVal() + 1 );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
 
     /**
      * Jump
