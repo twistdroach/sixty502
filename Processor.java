@@ -345,6 +345,33 @@ public class Processor
 						PC += byte1;
 					System.out.println( "BCC $" + PC );
 					break;
+    			// PLA
+				case 0x68: // Implied
+					byte1 = Memory.address[SP];
+					SP--;
+					A = byte1 & 0xFF;
+					System.out.println( "PLA A" );
+					break;
+    			// PHA
+				case 0x48: // Implied
+					SP++;
+					Memory.address[SP] = A;
+					System.out.println( "PHA A" );
+					break;
+    			// PHP
+				case 0x08: // Implied
+					SP++;
+					Memory.address[SP] = P;
+					System.out.println( "PHP P" );
+					break;
+    			// PLP
+				case 0x28: // Implied
+					P = Memory.address[SP]
+					SP--;
+					System.out.println( "PLP P" );
+					break;
+
+
     			default:
     				System.out.println( "(ERROR) Unsupported opcode: " + inst );
     				//System.exit( 0 );
