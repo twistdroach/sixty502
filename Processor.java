@@ -372,6 +372,7 @@ public class Processor
 					break;
 			// INX
 				case 0xE8: // Implied
+					System.out.println( "INX $" + Integer.toHexString( X ) );
 					X++;
 					checkNegative( X );
 					checkZero( X );
@@ -379,6 +380,7 @@ public class Processor
 					break;
 			// INY
 				case 0xC8: // Implied
+					System.out.println( "INY $" + Integer.toHexString( Y ) );
 					Y++;
 					checkNegative( Y );
 					checkZero( Y );
@@ -388,6 +390,7 @@ public class Processor
 				case 0xE6: // Zero Page
 					addr = Memory.address[PC++];
     					result = Memory.address[addr];
+					System.out.println( "INC $" + Integer.toHexString( result ) );
 					result++;
 					checkNegative( result );
 					checkZero( result );
@@ -397,6 +400,7 @@ public class Processor
 				case 0xF6: // Zero Page, X
 					addr = Memory.address[PC++];
     					result = Memory.address[addr + X];
+					System.out.println( "INC $" + Integer.toHexString( result ) );
 					result++;
 					checkNegative( result );
 					checkZero( result );
@@ -407,6 +411,7 @@ public class Processor
 					addr = Memory.address[PC++];
 					addr = ( Memory.address[PC++] << 8 ) | addr;
     					result = Memory.address[addr];
+					System.out.println( "INC $" + Integer.toHexString( result ) );
 					result++;
 					checkNegative( result );
 					checkZero( result );
@@ -416,6 +421,7 @@ public class Processor
 				case 0xFE: // Absolute, X
 					addr = Memory.address[PC++];
 					addr = ( Memory.address[PC++] << 8 ) | addr;
+					System.out.println( "INC $" + Integer.toHexString( result ) );
     					result = Memory.address[addr + X];
 					result++;
 					checkNegative( result );
