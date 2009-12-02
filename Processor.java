@@ -429,6 +429,38 @@ public class Processor
 					result = result & 0xFF;
 					Memory.address[addr + X] = result;
 					break;
+				//TAX
+				case 0xAA: // Implied
+					System.out.println( "TAX $" + Integer.toHexString( X )  );
+					X = A;
+					break;
+				//TXA
+				case 0x8A: // Implied
+					System.out.println( "TXA $" + Integer.toHexString( A )  );
+					A = X;
+					break;
+				//TAY
+				case 0xA8: // Implied
+					System.out.println( "TAY $" + Integer.toHexString( Y )  );
+					Y = A;
+					break;
+				//TYA
+				case 0x98: // Implied
+					System.out.println( "TYA $" + Integer.toHexString( A )  );
+					A = Y;
+					break;
+				//TXS
+				case 0x9A: // Implied
+					System.out.println( "TXS $" + Integer.toHexString( SP )  );
+					SP = X;
+					break;
+				//TSX
+				case 0xBA: // Implied
+					System.out.println( "TSX $" + Integer.toHexString( X )  );
+					X = SP;
+					break;
+
+
 
 
     			default:
@@ -1197,89 +1229,7 @@ public class Processor
         src1.setVal( Y.getVal() );
     }
     
-    /**
-     * Transfer A to X
-     * Copies the value in the accumulator and stores it in register X.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     */
-    private void TAX()
-    {
-        // Store A in X and set flags
-        Byte flags = X.setVal( A.getVal() );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
     
-    /**
-     * Transfer A to Y
-     * Copies the value in the accumulator and stores it in register Y.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     */
-    private void TAY()
-    {
-        // Store A in Y and set flags
-        Byte flags = Y.setVal( A.getVal() );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
-    
-    /**
-     * Transfer Stack pointer to X
-     * Copies the value in the stack pointer and stores it in register X.
-     */
-    private void TSX()
-    {
-        // Store SP in X, no flags changed
-        X.setVal( SP.getVal() );
-    }
-    
-    /**
-     * Transfer X to A
-     * Copies the value in register X and stores it in the accumulator.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     */
-    private void TXA()
-    {
-        // Store X in A and set flags
-        Byte flags = A.setVal( X.getVal() );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
-    
-    /**
-     * Transfer X to Stack pointer
-     * Copies the value in register X and stores it in the stack pointer.
-     */
-    private void TXS()
-    {
-        // Store X in SP, no flags changed
-        SP.setVal( X.getVal() );
-    }
-    
-    /**
-     * Transfer Y to A
-     * Copies the value in register Y and stores it in the accumulator.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     */
-    private void TYA()
-    {
-        // Store Y in A and set flags
-        Byte flags = A.setVal( Y.getVal() );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
     
     private void checkOverflow( int binary )
     {
