@@ -458,7 +458,24 @@ public class Processor
 				case 0xBA: // Implied
 					System.out.println( "TSX $" + Integer.toHexString( X )  );
 					X = SP;
-					break; 
+					break;
+				
+				// DEX
+				case 0xCA: // Implied
+					System.out.println( "DEX $" + Integer.toHexString( X ) );
+					X--;
+					checkNegative( X );
+					checkZero( X );
+					X = X & 0xFF;
+					break;
+				// DEY
+				case 0x88: // Implied
+					System.out.println( "DEY $" + Integer.toHexString( Y ) );
+					Y--;
+					checkNegative( Y );
+					checkZero( Y );
+					Y = Y & 0xFF;
+					break;
 
 
 
@@ -758,21 +775,6 @@ public class Processor
         }
     }
       
-    /**
-     * Decrement X
-     * Decreases the value stored in register X by one.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     */
-    private void DEX()
-    {
-        // Decrement and set flags
-        Byte flags = X.setVal( X.getVal() - 1 );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
     
     /**
      * Decrement Memory
@@ -792,21 +794,7 @@ public class Processor
         P.setBit( P_Z, flags.getBit( P_Z ) );
     }
     
-    /**
-     * Decrement Y
-     * Decreases the value stored in register Y by one.
-     *
-     * Used Flags:
-     *   N - Set if result is negative.
-     *   Z - Set if result is zero.
-     */
-    private void DEY()
-    {
-        // Decrement and set flags
-        Byte flags = Y.setVal( Y.getVal() - 1 );
-        P.setBit( P_N, flags.getBit( P_N ) );
-        P.setBit( P_Z, flags.getBit( P_Z ) );
-    }
+
 
     /**
      * Bitwise Exclusive OR
