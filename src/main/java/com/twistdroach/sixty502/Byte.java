@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Byte.java
  * A class that keeps track of a specific byte of information.

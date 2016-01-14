@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * PC.java
  * Virtual NES PC register

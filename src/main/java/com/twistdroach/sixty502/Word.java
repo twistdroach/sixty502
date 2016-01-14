@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Word.java
  * Defines the Word datatype.

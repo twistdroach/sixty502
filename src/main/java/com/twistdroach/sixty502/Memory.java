@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Memory.java
  * Singleton class that emulates word-addressable NES memory.

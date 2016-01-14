@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Processor.java
  * Emulates the NES' main processor

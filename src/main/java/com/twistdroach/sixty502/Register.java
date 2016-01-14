@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Register.java
  * Handles a virtual register

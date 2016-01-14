@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Parser.java
  * Static class that handles all regex and parsing.

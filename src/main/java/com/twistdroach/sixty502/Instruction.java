@@ -1,3 +1,5 @@
+package com.twistdroach.sixty502;
+
 /**
  * Instruction.java
  * Stores the parts of each instruction for use in execution.
